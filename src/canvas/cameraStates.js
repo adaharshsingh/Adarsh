@@ -8,7 +8,7 @@ export const CAMERA_STATES = {
     target: [0, 8, 0],
   },
   MACBOOK: {
-    position: [-2, 9, 9],
-    target: [-1, 8, 0],
+    position: [1.9, 9, 0],
+    target: [-1, 8.45, 0],
   },
 };

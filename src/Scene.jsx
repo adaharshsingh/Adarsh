@@ -1,12 +1,13 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Html, useGLTF } from "@react-three/drei";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 import useCameraMove from "./canvas/useCameraMove";
 import { CAMERA_STATES } from "./canvas/cameraStates";
+import PortfolioModal from "./components/PortfolioModal";
 import DesktopPortfolio from "./ui/DesktopPortfolio";
 
-function Workspace() {
+function Workspace({ isPortfolioOpen, setIsPortfolioOpen }) {
   const { scene } = useGLTF("/models/Untitled.glb");
   const sunRef = useRef();
   const { moveTo } = useCameraMove();
@@ -15,6 +16,8 @@ function Workspace() {
   const mouseRef = useRef(null);
   const mouseBasePos = useRef({ x: 0, y: 0, z: 0 });
   const isScrolling = useRef(false);
+  const scrollTimeoutRef = useRef(null);
+  const [currentCameraState, setCurrentCameraState] = useState("DESK");
   
   // Mobile detection
   const isMobile = window.innerWidth < 768;
@@ -23,8 +26,8 @@ function Workspace() {
   useEffect(() => {
     const handleScroll = () => {
       isScrolling.current = true;
-      clearTimeout(isScrolling.current.timeout);
-      isScrolling.current.timeout = setTimeout(() => {
+      clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = setTimeout(() => {
         isScrolling.current = false;
       }, 150);
     };
@@ -33,10 +36,47 @@ function Workspace() {
     return () => window.removeEventListener("wheel", handleScroll);
   }, []);
 
-  // Auto-move camera after 2 seconds
+  // Keyboard controls for camera switching (1, 2, 3)
   useEffect(() => {
+    const handleKeyPress = (e) => {
+      const cameraKeys = {
+        "1": "DESK",
+        "2": "GALLERY",
+        "3": "MACBOOK",
+      };
+
+      const key = e.key;
+      
+      // Press 1 to close portfolio
+      if (key === "1" && isPortfolioOpen) {
+        setIsPortfolioOpen(false);
+        setCurrentCameraState("GALLERY");
+        return;
+      }
+      
+      if (cameraKeys[key]) {
+        const targetState = cameraKeys[key];
+        if (CAMERA_STATES[targetState]) {
+          moveTo(CAMERA_STATES[targetState]);
+          setCurrentCameraState(targetState);
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyPress);
+    return () => document.removeEventListener("keydown", handleKeyPress);
+  }, [moveTo, isPortfolioOpen]);
+
+  // Auto-move camera after 2 seconds (only once on first load)
+  const hasMovedRef = useRef(false);
+  
+  useEffect(() => {
+    if (hasMovedRef.current) return; // Don't run again
+    
     const timer = setTimeout(() => {
+      hasMovedRef.current = true;
       moveTo(CAMERA_STATES.GALLERY);
+      setCurrentCameraState("GALLERY");
     }, 800);
 
     return () => clearTimeout(timer);
@@ -62,9 +102,9 @@ function Workspace() {
     };
   }, [scene]);
 
-  // Mouse cursor tracking with smooth movement
+  // Mouse cursor tracking with smooth movement (ONLY in GALLERY view)
   useFrame(({ mouse }) => {
-    if (isMobile || !mouseRef.current || isScrolling.current) return;
+    if (isMobile || !mouseRef.current || isScrolling.current || currentCameraState !== "GALLERY") return;
 
     // Larger movement area (2x the previous size)
     const MAX_MOVE_X = 1.0;   // left-right slide (doubled)
@@ -121,18 +161,38 @@ function Workspace() {
       {/* Invisible click area on MacBook */}
       <mesh
         position={[-1.137, 8.39, 0.23]}
-        onClick={() => moveTo(CAMERA_STATES.MACBOOK)}
+        onClick={() => {
+          moveTo(CAMERA_STATES.MACBOOK);
+          setCurrentCameraState("MACBOOK");
+          
+          setTimeout(() => {
+            setIsPortfolioOpen(true);
+          }, 1200);
+        }}
       >
         <boxGeometry args={[4, 3, 0.1]} />
         <meshBasicMaterial transparent opacity={0} />
       </mesh>
 
-      {/* MacBook Screen */}
+      {/* MacBook Screen -1.137, 8.39, 0.23*/}
       {/* MacBook Screen (pivoted groups to avoid translation when rotating) */}
       <group position={[-1.137, 8.39, 0.23]} rotation-y={Math.PI / 2}>
         <group rotation-x={-0.14}>
-          <Html transform occlude scale={[0.138, 0.12, 1]}>
-            <DesktopPortfolio />
+          <Html transform occlude scale={[0.139, 0.122, 1]}>
+            <div
+              onClick={() => {
+                moveTo(CAMERA_STATES.MACBOOK);
+                setCurrentCameraState("MACBOOK");
+                
+                // Camera animation is 1.2 seconds, transition to full screen right after
+                setTimeout(() => {
+                  setIsPortfolioOpen(true);
+                }, 880);
+              }}
+              style={{ cursor: "pointer" }}
+            >
+              <DesktopPortfolio />
+            </div>
           </Html>
         </group>
       </group>
@@ -141,30 +201,48 @@ function Workspace() {
 }
 
 export default function Scene() {
+  const [isPortfolioOpen, setIsPortfolioOpen] = useState(false);
+
   return (
-    <Canvas camera={{ position: [49, 19, 40], fov: 45 }} shadows>
-      <color attach="background" args={["#1a1a1a"]} />
+    <>
+      <Canvas 
+        camera={{ position: [49, 19, 40], fov: 45 }} 
+        shadows
+        style={{
+          opacity: isPortfolioOpen ? 0 : 1,
+          transition: "opacity 0.8s ease",
+          pointerEvents: isPortfolioOpen ? "none" : "auto",
+        }}
+      >
+        <color attach="background" args={["#1a1a1a"]} />
 
-      {/* Lights */}
-      <ambientLight intensity={0.35} />
+        {/* Lights */}
+        <ambientLight intensity={0.35} />
 
-      <directionalLight
-        position={[-20, 25, -15]}
-        intensity={1.6}
-        castShadow
-        shadow-bias={-0.0005}
-        shadow-normalBias={0.04}
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-camera-near={5}
-        shadow-camera-far={60}
-        shadow-camera-left={-15}
-        shadow-camera-right={15}
-        shadow-camera-top={15}
-        shadow-camera-bottom={-15}
+        <directionalLight
+          position={[-20, 25, -15]}
+          intensity={1.6}
+          castShadow
+          shadow-bias={-0.0005}
+          shadow-normalBias={0.04}
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
+          shadow-camera-near={5}
+          shadow-camera-far={60}
+          shadow-camera-left={-15}
+          shadow-camera-right={15}
+          shadow-camera-top={15}
+          shadow-camera-bottom={-15}
+        />
+        {/* Scene */}
+        <Workspace isPortfolioOpen={isPortfolioOpen} setIsPortfolioOpen={setIsPortfolioOpen} />
+      </Canvas>
+
+      {/* Portfolio Modal - Outside Canvas */}
+      <PortfolioModal 
+        isOpen={isPortfolioOpen} 
+        onClose={() => setIsPortfolioOpen(false)}
       />
-      {/* Scene */}
-      <Workspace />
-    </Canvas>
+    </>
   );
 }

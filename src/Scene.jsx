@@ -1,12 +1,24 @@
 import { Canvas } from "@react-three/fiber";
-import { Html, useGLTF, OrbitControls } from "@react-three/drei";
-import { useRef } from "react";
+import { Html, useGLTF } from "@react-three/drei";
+import { useRef, useEffect } from "react";
 import * as THREE from "three";
+import useCameraMove from "./canvas/useCameraMove";
+import { CAMERA_STATES } from "./canvas/cameraStates";
 import DesktopPortfolio from "./ui/DesktopPortfolio";
 
 function Workspace() {
   const { scene } = useGLTF("/models/Untitled.glb");
   const sunRef = useRef();
+  const { moveTo } = useCameraMove();
+
+  // Auto-move camera after 2 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      moveTo(CAMERA_STATES.GALLERY);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [moveTo]);
 
   // Enable shadows on all objects in the scene
   scene.traverse((obj) => {
@@ -44,6 +56,15 @@ function Workspace() {
         />
       </mesh>
 
+      {/* Invisible click area on MacBook */}
+      <mesh
+        position={[-1.137, 8.39, 0.23]}
+        onClick={() => moveTo(CAMERA_STATES.MACBOOK)}
+      >
+        <boxGeometry args={[4, 3, 0.1]} />
+        <meshBasicMaterial transparent opacity={0} />
+      </mesh>
+
       {/* MacBook Screen */}
       {/* MacBook Screen (pivoted groups to avoid translation when rotating) */}
       <group position={[-1.137, 8.39, 0.23]} rotation-y={Math.PI / 2}>
@@ -59,7 +80,7 @@ function Workspace() {
 
 export default function Scene() {
   return (
-    <Canvas camera={{ position: [0, 10, 18], fov: 45 }} shadows>
+    <Canvas camera={{ position: [49, 19, 40], fov: 45 }} shadows>
       <color attach="background" args={["#1a1a1a"]} />
 
       {/* Lights */}
@@ -80,12 +101,8 @@ export default function Scene() {
         shadow-camera-top={15}
         shadow-camera-bottom={-15}
       />
-
       {/* Scene */}
       <Workspace />
-
-      {/* Enable mouse controls */}
-      <OrbitControls />
     </Canvas>
   );
 }

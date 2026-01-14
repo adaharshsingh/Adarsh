@@ -1,4 +1,4 @@
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { Html, useGLTF } from "@react-three/drei";
 import { useRef, useEffect } from "react";
 import * as THREE from "three";
@@ -10,6 +10,28 @@ function Workspace() {
   const { scene } = useGLTF("/models/Untitled.glb");
   const sunRef = useRef();
   const { moveTo } = useCameraMove();
+  
+  // Refs for mouse tracking
+  const mouseRef = useRef(null);
+  const mouseBasePos = useRef({ x: 0, y: 0, z: 0 });
+  const isScrolling = useRef(false);
+  
+  // Mobile detection
+  const isMobile = window.innerWidth < 768;
+
+  // Disable mouse tracking during scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      isScrolling.current = true;
+      clearTimeout(isScrolling.current.timeout);
+      isScrolling.current.timeout = setTimeout(() => {
+        isScrolling.current = false;
+      }, 150);
+    };
+
+    window.addEventListener("wheel", handleScroll, { passive: true });
+    return () => window.removeEventListener("wheel", handleScroll);
+  }, []);
 
   // Auto-move camera after 2 seconds
   useEffect(() => {
@@ -19,6 +41,46 @@ function Workspace() {
 
     return () => clearTimeout(timer);
   }, [moveTo]);
+
+  // Extract and store mouse mesh from GLB
+  useEffect(() => {
+    scene.traverse((obj) => {
+      if (obj.name.toLowerCase().includes("mouse")) {
+        mouseRef.current = obj;
+      }
+    });
+  }, [scene]);
+
+  // Store mouse's resting position
+  useEffect(() => {
+    if (!mouseRef.current) return;
+
+    mouseBasePos.current = {
+      x: mouseRef.current.position.x,
+      y: mouseRef.current.position.y,
+      z: mouseRef.current.position.z,
+    };
+  }, [scene]);
+
+  // Mouse cursor tracking with smooth movement
+  useFrame(({ mouse }) => {
+    if (isMobile || !mouseRef.current || isScrolling.current) return;
+
+    // Larger movement area (2x the previous size)
+    const MAX_MOVE_X = 1.0;   // left-right slide (doubled)
+    const MAX_MOVE_Z = 0.5;   // forward-back (doubled)
+
+    // Direct mapping: swap axes to match cursor to 3D space correctly
+    const targetX = mouseBasePos.current.x - mouse.y * MAX_MOVE_X;
+    const targetZ = mouseBasePos.current.z - mouse.x * MAX_MOVE_Z;
+
+    // Smooth movement (physical feel)
+    mouseRef.current.position.x +=
+      (targetX - mouseRef.current.position.x) * 0.15;
+
+    mouseRef.current.position.z +=
+      (targetZ - mouseRef.current.position.z) * 0.15;
+  });
 
   // Enable shadows on all objects in the scene
   scene.traverse((obj) => {

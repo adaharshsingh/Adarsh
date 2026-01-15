@@ -5,9 +5,10 @@ import * as THREE from "three";
 import useCameraMove from "./canvas/useCameraMove";
 import { CAMERA_STATES } from "./canvas/cameraStates";
 import PortfolioModal from "./components/PortfolioModal";
+import MobilePortfolio from "./components/MobilePortfolio";
 import DesktopPortfolio from "./ui/DesktopPortfolio";
 
-function Workspace({ isPortfolioOpen, setIsPortfolioOpen }) {
+function Workspace({ isPortfolioOpen, setIsPortfolioOpen, isMobilePortfolioOpen, setIsMobilePortfolioOpen }) {
   const { scene } = useGLTF("/models/Untitled.glb");
   const sunRef = useRef();
   const { moveTo } = useCameraMove();
@@ -36,13 +37,14 @@ function Workspace({ isPortfolioOpen, setIsPortfolioOpen }) {
     return () => window.removeEventListener("wheel", handleScroll);
   }, []);
 
-  // Keyboard controls for camera switching (1, 2, 3)
+  // Keyboard controls for camera switching (1, 2, 3, 4)
   useEffect(() => {
     const handleKeyPress = (e) => {
       const cameraKeys = {
         "1": "DESK",
         "2": "GALLERY",
         "3": "MACBOOK",
+        "4": "IPHONE",
       };
 
       const key = e.key;
@@ -161,6 +163,7 @@ function Workspace({ isPortfolioOpen, setIsPortfolioOpen }) {
       {/* Invisible click area on MacBook */}
       <mesh
         position={[-1.137, 8.39, 0.23]}
+        
         onClick={() => {
           moveTo(CAMERA_STATES.MACBOOK);
           setCurrentCameraState("MACBOOK");
@@ -171,6 +174,24 @@ function Workspace({ isPortfolioOpen, setIsPortfolioOpen }) {
         }}
       >
         <boxGeometry args={[4, 3, 0.1]} />
+        <meshBasicMaterial transparent opacity={0} />
+      </mesh>
+
+      {/* iPhone Screen - CLICKABLE */}
+      <mesh
+        position={[0.2, 6.29, -2.88]}
+        rotation={[0, 2.68, 0]} 
+        onClick={() => {
+          moveTo(CAMERA_STATES.IPHONE);
+          setCurrentCameraState("IPHONE");
+          
+          // Wait for camera animation (1.2s) then transition to full screen
+          setTimeout(() => {
+            setIsMobilePortfolioOpen(true);
+          }, 1200);
+        }}
+      >
+        <boxGeometry args={[1.7, 0, 0.73]} />
         <meshBasicMaterial transparent opacity={0} />
       </mesh>
 
@@ -202,6 +223,7 @@ function Workspace({ isPortfolioOpen, setIsPortfolioOpen }) {
 
 export default function Scene() {
   const [isPortfolioOpen, setIsPortfolioOpen] = useState(false);
+  const [isMobilePortfolioOpen, setIsMobilePortfolioOpen] = useState(false);
 
   return (
     <>
@@ -209,9 +231,9 @@ export default function Scene() {
         camera={{ position: [49, 19, 40], fov: 45 }} 
         shadows
         style={{
-          opacity: isPortfolioOpen ? 0 : 1,
+          opacity: isPortfolioOpen || isMobilePortfolioOpen ? 0 : 1,
           transition: "opacity 0.8s ease",
-          pointerEvents: isPortfolioOpen ? "none" : "auto",
+          pointerEvents: isPortfolioOpen || isMobilePortfolioOpen ? "none" : "auto",
         }}
       >
         <color attach="background" args={["#1a1a1a"]} />
@@ -235,13 +257,19 @@ export default function Scene() {
           shadow-camera-bottom={-15}
         />
         {/* Scene */}
-        <Workspace isPortfolioOpen={isPortfolioOpen} setIsPortfolioOpen={setIsPortfolioOpen} />
+        <Workspace isPortfolioOpen={isPortfolioOpen} setIsPortfolioOpen={setIsPortfolioOpen} isMobilePortfolioOpen={isMobilePortfolioOpen} setIsMobilePortfolioOpen={setIsMobilePortfolioOpen} />
       </Canvas>
 
       {/* Portfolio Modal - Outside Canvas */}
       <PortfolioModal 
         isOpen={isPortfolioOpen} 
         onClose={() => setIsPortfolioOpen(false)}
+      />
+
+      {/* Mobile Portfolio Modal - Outside Canvas */}
+      <MobilePortfolio 
+        isOpen={isMobilePortfolioOpen} 
+        onClose={() => setIsMobilePortfolioOpen(false)}
       />
     </>
   );

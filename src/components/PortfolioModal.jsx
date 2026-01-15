@@ -1,4 +1,20 @@
-export default function PortfolioModal({ isOpen, onClose }) {
+import { useEffect } from "react";
+
+export default function PortfolioModal({ isOpen, onClose, onEscapeWithAnimation }) {
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape" && isOpen) {
+        if (onEscapeWithAnimation) {
+          onEscapeWithAnimation();
+        } else {
+          onClose();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, [isOpen, onClose, onEscapeWithAnimation]);
   return (
     <div
       style={{

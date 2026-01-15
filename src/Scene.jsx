@@ -1,14 +1,14 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Html, useGLTF } from "@react-three/drei";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import * as THREE from "three";
 import useCameraMove from "./canvas/useCameraMove";
 import { CAMERA_STATES } from "./canvas/cameraStates";
 import PortfolioModal from "./components/PortfolioModal";
-import MobilePortfolio from "./components/MobilePortfolio";
+import MobilePortfolioScene from "./components/MobilePortfolioScene";
 import DesktopPortfolio from "./ui/DesktopPortfolio";
 
-function Workspace({ isPortfolioOpen, setIsPortfolioOpen, isMobilePortfolioOpen, setIsMobilePortfolioOpen }) {
+function WorkspaceInner({ isPortfolioOpen, setIsPortfolioOpen, isMobilePortfolioOpen, setIsMobilePortfolioOpen }, ref) {
   const { scene } = useGLTF("/models/Untitled.glb");
   const sunRef = useRef();
   const { moveTo } = useCameraMove();
@@ -22,6 +22,23 @@ function Workspace({ isPortfolioOpen, setIsPortfolioOpen, isMobilePortfolioOpen,
   
   // Mobile detection
   const isMobile = window.innerWidth < 768;
+
+  // Expose exitPortfolio method to parent
+  useImperativeHandle(ref, () => ({
+    exitPortfolio: () => {
+      // Move to MACBOOK first
+      moveTo(CAMERA_STATES.MACBOOK);
+      setCurrentCameraState("MACBOOK");
+      
+      // Then after 1.2s (camera animation), move to GALLERY and close portfolio
+      setTimeout(() => {
+        moveTo(CAMERA_STATES.GALLERY);
+        setCurrentCameraState("GALLERY");
+        setIsPortfolioOpen(false);
+        setIsMobilePortfolioOpen(false);
+      }, 1200);
+    }
+  }), [moveTo, setIsPortfolioOpen, setIsMobilePortfolioOpen]);
 
   // Disable mouse tracking during scroll
   useEffect(() => {
@@ -124,6 +141,41 @@ function Workspace({ isPortfolioOpen, setIsPortfolioOpen, isMobilePortfolioOpen,
       (targetZ - mouseRef.current.position.z) * 0.15;
   });
 
+  // Scale animation for MacBook screen
+  const macbookScaleRef = useRef(1);
+  const [macbookScale, setMacbookScale] = useState(1);
+  const [isAnimatingMacbook, setIsAnimatingMacbook] = useState(false);
+  const macbookScreenRef = useRef();
+  const baseScreenZ = useRef(0);
+
+  // Store base Z position of MacBook screen
+  useEffect(() => {
+    if (macbookScreenRef.current) {
+      baseScreenZ.current = macbookScreenRef.current.position.z;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isPortfolioOpen) return;
+    if (!isAnimatingMacbook) return;
+
+    // Just open portfolio, no screen animation needed
+    setIsPortfolioOpen(true);
+    setIsAnimatingMacbook(false);
+  }, [isAnimatingMacbook, isPortfolioOpen]);
+
+  // Reset scale and position when closing portfolio
+  useEffect(() => {
+    if (!isPortfolioOpen) {
+      macbookScaleRef.current = 1;
+      setMacbookScale(1);
+      // Reset Z position back to original
+      if (macbookScreenRef.current) {
+        macbookScreenRef.current.position.z = baseScreenZ.current;
+      }
+    }
+  }, [isPortfolioOpen]);
+
   // Enable shadows on all objects in the scene
   scene.traverse((obj) => {
     if (obj.isMesh) {
@@ -160,22 +212,7 @@ function Workspace({ isPortfolioOpen, setIsPortfolioOpen, isMobilePortfolioOpen,
         />
       </mesh>
 
-      {/* Invisible click area on MacBook */}
-      <mesh
-        position={[-1.137, 8.39, 0.23]}
-        
-        onClick={() => {
-          moveTo(CAMERA_STATES.MACBOOK);
-          setCurrentCameraState("MACBOOK");
-          
-          setTimeout(() => {
-            setIsPortfolioOpen(true);
-          }, 1200);
-        }}
-      >
-        <boxGeometry args={[4, 3, 0.1]} />
-        <meshBasicMaterial transparent opacity={0} />
-      </mesh>
+      {/* Invisible click area on MacBook - removed, use screen click instead */}
 
       {/* iPhone Screen - CLICKABLE */}
       <mesh
@@ -195,20 +232,19 @@ function Workspace({ isPortfolioOpen, setIsPortfolioOpen, isMobilePortfolioOpen,
         <meshBasicMaterial transparent opacity={0} />
       </mesh>
 
-      {/* MacBook Screen -1.137, 8.39, 0.23*/}
       {/* MacBook Screen (pivoted groups to avoid translation when rotating) */}
-      <group position={[-1.137, 8.39, 0.23]} rotation-y={Math.PI / 2}>
+      <group ref={macbookScreenRef} position={[-1.137, 8.39, 0.23]} rotation-y={Math.PI / 2}>
         <group rotation-x={-0.14}>
-          <Html transform occlude scale={[0.139, 0.122, 1]}>
+          <Html transform occlude scale={[0.139 * macbookScale, 0.122 * macbookScale, 1]}>
             <div
               onClick={() => {
                 moveTo(CAMERA_STATES.MACBOOK);
                 setCurrentCameraState("MACBOOK");
                 
-                // Camera animation is 1.2 seconds, transition to full screen right after
+                // Camera animation is 1.2s, then open portfolio
                 setTimeout(() => {
-                  setIsPortfolioOpen(true);
-                }, 880);
+                  setIsAnimatingMacbook(true);
+                }, 1200);
               }}
               style={{ cursor: "pointer" }}
             >
@@ -221,9 +257,31 @@ function Workspace({ isPortfolioOpen, setIsPortfolioOpen, isMobilePortfolioOpen,
   );
 }
 
+const Workspace = forwardRef(WorkspaceInner);
+
 export default function Scene() {
   const [isPortfolioOpen, setIsPortfolioOpen] = useState(false);
   const [isMobilePortfolioOpen, setIsMobilePortfolioOpen] = useState(false);
+  const cameraRef = useRef(null);
+
+  const handleClosePortfolioWithAnimation = () => {
+    // This will be called from PortfolioModal when ESC is pressed
+    // We need to pass the camera control to it
+    if (cameraRef.current) {
+      cameraRef.current.exitPortfolio();
+    } else {
+      setIsPortfolioOpen(false);
+    }
+  };
+
+  const handleCloseMobilePortfolioWithAnimation = () => {
+    // This will be called from MobilePortfolio when ESC is pressed
+    if (cameraRef.current) {
+      cameraRef.current.exitPortfolio();
+    } else {
+      setIsMobilePortfolioOpen(false);
+    }
+  };
 
   return (
     <>
@@ -257,17 +315,24 @@ export default function Scene() {
           shadow-camera-bottom={-15}
         />
         {/* Scene */}
-        <Workspace isPortfolioOpen={isPortfolioOpen} setIsPortfolioOpen={setIsPortfolioOpen} isMobilePortfolioOpen={isMobilePortfolioOpen} setIsMobilePortfolioOpen={setIsMobilePortfolioOpen} />
+        <Workspace 
+          ref={cameraRef}
+          isPortfolioOpen={isPortfolioOpen} 
+          setIsPortfolioOpen={setIsPortfolioOpen} 
+          isMobilePortfolioOpen={isMobilePortfolioOpen} 
+          setIsMobilePortfolioOpen={setIsMobilePortfolioOpen} 
+        />
       </Canvas>
 
       {/* Portfolio Modal - Outside Canvas */}
       <PortfolioModal 
         isOpen={isPortfolioOpen} 
         onClose={() => setIsPortfolioOpen(false)}
+        onEscapeWithAnimation={handleClosePortfolioWithAnimation}
       />
 
-      {/* Mobile Portfolio Modal - Outside Canvas */}
-      <MobilePortfolio 
+      {/* Mobile Portfolio Scene - Outside Canvas */}
+      <MobilePortfolioScene 
         isOpen={isMobilePortfolioOpen} 
         onClose={() => setIsMobilePortfolioOpen(false)}
       />

@@ -19,9 +19,33 @@ function WorkspaceInner({ isPortfolioOpen, setIsPortfolioOpen, isMobilePortfolio
   const isScrolling = useRef(false);
   const scrollTimeoutRef = useRef(null);
   const [currentCameraState, setCurrentCameraState] = useState("DESK");
-  
-  // Mobile detection
-  const isMobile = window.innerWidth < 768;
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const autoClickRef = useRef(false);
+
+  // Mobile detection with resize listener
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Auto-trigger iPhone when mobile reaches gallery position
+  useEffect(() => {
+    if (isMobile && currentCameraState === "GALLERY" && !autoClickRef.current) {
+      autoClickRef.current = true;
+      // Simulate click on iPhone mesh
+      setTimeout(() => {
+        moveTo(CAMERA_STATES.IPHONE);
+        setCurrentCameraState("IPHONE");
+        
+        setTimeout(() => {
+          setIsMobilePortfolioOpen(true);
+        }, 1200);
+      }, 500); // Small delay for smooth transition
+    }
+  }, [isMobile, currentCameraState, moveTo, setIsMobilePortfolioOpen]);
 
   // Expose exitPortfolio method to parent
   useImperativeHandle(ref, () => ({
@@ -34,6 +58,7 @@ function WorkspaceInner({ isPortfolioOpen, setIsPortfolioOpen, isMobilePortfolio
       setTimeout(() => {
         moveTo(CAMERA_STATES.GALLERY);
         setCurrentCameraState("GALLERY");
+        autoClickRef.current = false; // Reset for next mobile auto-click
         setIsPortfolioOpen(false);
         setIsMobilePortfolioOpen(false);
       }, 1200);

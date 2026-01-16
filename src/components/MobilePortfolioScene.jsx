@@ -43,13 +43,13 @@ function ScreenContent() {
         width: "390px",
         height: "844px",
         background: "#000",
-        borderRadius: "50px 50px 50px 50px",
+        borderRadius: "89px",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
         fontFamily: "system-ui, -apple-system, sans-serif",
         color: "white",
-        border: "8px solid #1a1a1a",
+        border: "1px solid #0a0a0a",
         boxSizing: "border-box",
       }}
     >
@@ -115,7 +115,7 @@ function ScreenContent() {
           flex: 1,
           padding: "16px",
           overflowY: "auto",
-          background: "linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%)",
+          background: "linear-gradient(135deg, #0f1419 0%, #1a2a3a 100%)",
         }}
       >
         {activeTab === "home" && (
@@ -323,15 +323,22 @@ function ScreenContent() {
 function IPhoneModel({ isMoveAnimating }) {
   const { scene } = useGLTF("/models/iphone_air.glb");
   const groupRef = useRef();
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStartX, setDragStartX] = useState(0);
   const [showScreen, setShowScreen] = useState(false);
-  const [isReturning, setIsReturning] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const targetRotationRef = useRef(-84 * Math.PI / 180);
   const isMoveAnimatingRef = useRef(false);
-  const dragTimeoutRef = useRef(null);
   const rotationCompleteRef = useRef(false);
+
+  // Memoize cloned scene to avoid re-cloning every render
+  const clonedScene = useMemo(() => scene.clone(), [scene]);
+
+  // Calculate plane dimensions from texture aspect ratio
+  const planeWidth = useMemo(() => {
+    const { image } = screenshotTexture;
+    const aspect = image.width / image.height;
+    const height = 4.8;
+    return height * aspect;
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -362,9 +369,7 @@ function IPhoneModel({ isMoveAnimating }) {
     if (Math.abs(rotationDiff) < 0.01 && !rotationCompleteRef.current) {
       rotationCompleteRef.current = true;
       // Show screen after rotation completes
-      if (!isDragging) {
-        setShowScreen(true);
-      }
+      setShowScreen(true);
     }
   });
 
@@ -372,42 +377,32 @@ function IPhoneModel({ isMoveAnimating }) {
     if (groupRef.current) {
       // Set initial rotation
       groupRef.current.rotation.y = -37 * Math.PI / 180;
+      groupRef.current.rotation.x = 0; 
+      groupRef.current.rotation.z = 0; // Adjust this for side-to-side tilt
       rotationCompleteRef.current = false;
     }
   }, []);
 
-  const handlePointerDown = (e) => {
-    setIsDragging(true);
-    setDragStartX(e.clientX || e.touches?.[0]?.clientX);
-    setShowScreen(false); // Hide screen when dragging starts
-    
-    // Clear any pending timeout
-    if (dragTimeoutRef.current) clearTimeout(dragTimeoutRef.current);
+  // Note: Rotation values are continuously updated in useFrame()
+  // To adjust the final rotation, modify targetRotationRef.current value
+  useEffect(() => {
+    targetRotationRef.current = -84 * Math.PI / 180; // Adjust this to rotate the model (1-90 degrees = * Math.PI / 180)
+  }, []);
+
+  const handlePointerDown = () => {
+    // Rotation disabled - iPhone is non-rotatable
   };
 
-  const handlePointerMove = (e) => {
-    if (!isDragging) return;
-    const currentClientX = e.clientX || e.touches?.[0]?.clientX;
-    const deltaX = currentClientX - dragStartX;
-    targetRotationRef.current = (-90 * Math.PI / 180) + deltaX * 0.005;
+  const handlePointerMove = () => {
+    // Rotation disabled - iPhone is non-rotatable
   };
 
   const handlePointerUp = () => {
-    setIsDragging(false);
-    setIsReturning(true); // Start animation back to original position
-    rotationCompleteRef.current = false;
-    
-    // After 1 second, reset to default rotation
-    dragTimeoutRef.current = setTimeout(() => {
-      targetRotationRef.current = -90 * Math.PI / 180; // Reset to default rotation
-      setIsReturning(false);
-    }, 1000);
+    // Rotation disabled - iPhone is non-rotatable
   };
 
   useEffect(() => {
-    return () => {
-      if (dragTimeoutRef.current) clearTimeout(dragTimeoutRef.current);
-    };
+    // No cleanup needed
   }, []);
 
   return (
@@ -419,25 +414,36 @@ function IPhoneModel({ isMoveAnimating }) {
       onPointerUp={handlePointerUp}
       onPointerLeave={handlePointerUp}
     >
-      <primitive object={scene.clone()} scale={33} />
+      <primitive object={clonedScene} scale={33} />
 
       {/* Screen mesh - Screenshot texture */}
       {!showScreen && (
         <mesh position={[0.1, -0.13, 0.03]} rotation={[0, 1.57, 0]}>
-          <planeGeometry args={[2.4, 4.8]} />
+          <planeGeometry args={[planeWidth, 4.8]} />
           <meshBasicMaterial map={screenshotTexture} />
         </mesh>
       )}
 
-      {/* Wrapper group for screen content to rotate with iPhone */}
+      {/* Screen content - same position/rotation as mesh, above by 0.001 to avoid z-fighting */}
       {showScreen && (
-        <group position={[-0.5, -0.13, 0.8]} rotation={[0, 1.57, 0]}>
-          <Html
-            position={[-0.7, 2.42,1]}
-            scale={[4.75, 3.6, 1]}
-            occlude="blending"
+        <group
+          position={[0.1, 0.03, 0]}
+          rotation={[0, Math.PI / 2, 0]}
+        >
+          <Html 
+            transform
+            scale={[2.5, 2.44, 1]}
+            distanceFactor={1.0}
+            occlude
           >
-            <ScreenContent />
+            <div
+              style={{
+                opacity: 1,
+                transition: "opacity 0.6s ease",
+              }}
+            >
+              <ScreenContent />
+            </div>
           </Html>
         </group>
       )}
@@ -509,7 +515,7 @@ export default function MobilePortfolioScene({ isOpen, onClose }) {
           camera={{ position: [0, 0, isMobile ? 7 : 8], fov: 45 }}
           shadows
         >
-          <color attach="background" args={[isMobile ? "#000" : "#1a1a1a"]} />
+          <color attach="background" args={["#0f1419"]} />
 
           {/* Lights */}
           <ambientLight intensity={0.5} />

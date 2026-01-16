@@ -23,7 +23,7 @@ export default function PortfolioModal({ isOpen, onClose, onEscapeWithAnimation 
         left: 0,
         width: "100%",
         height: "100%",
-        background: "linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 50%, #16213e 100%)",
+        background: "linear-gradient(135deg, #0f1419 0%, #1a2a3a 100%)",
         opacity: isOpen ? 1 : 0,
         visibility: isOpen ? "visible" : "hidden",
         transition: "opacity 0.6s ease, visibility 0.6s ease",

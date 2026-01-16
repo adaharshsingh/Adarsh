@@ -1,14 +1,10 @@
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { useGLTF, Html } from "@react-three/drei";
 import { useRef, useEffect, useState, useMemo } from "react";
 import { TextureLoader } from "three";
 
 // Preload iPhone model
 useGLTF.preload("/models/iphone_air.glb");
-
-// Preload screenshot texture
-const textureLoader = new TextureLoader();
-const screenshotTexture = textureLoader.load("/models/Screenshot 2026-01-15 183246.png");
 
 function ScreenContent() {
   const roles = useMemo(() => ["Web Developer", "Designer", "Creator"], []);
@@ -322,9 +318,13 @@ function ScreenContent() {
 
 function IPhoneModel({ isMoveAnimating }) {
   const { scene } = useGLTF("/models/iphone_air.glb");
+  const screenshotTexture = useLoader(
+    TextureLoader,
+    "/models/Screenshot 2026-01-15 183246.png"
+  );
   const groupRef = useRef();
   const [showScreen, setShowScreen] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isMobile, setIsMobile] = useState(false);
   const targetRotationRef = useRef(-84 * Math.PI / 180);
   const isMoveAnimatingRef = useRef(false);
   const rotationCompleteRef = useRef(false);
@@ -338,12 +338,13 @@ function IPhoneModel({ isMoveAnimating }) {
     const aspect = image.width / image.height;
     const height = 4.8;
     return height * aspect;
-  }, []);
+  }, [screenshotTexture]);
 
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
+    handleResize(); // set initial value
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -453,12 +454,13 @@ function IPhoneModel({ isMoveAnimating }) {
 
 export default function MobilePortfolioScene({ isOpen, onClose }) {
   const [isMoveAnimating, setIsMoveAnimating] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
+    handleResize(); // set initial value
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);

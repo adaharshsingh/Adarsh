@@ -11,15 +11,20 @@ function IPhoneModel({ scale, focusPhone, onClick, onSettled }) {
   const { scene } = useGLTF("/models/iphone_air.glb");
   const groupRef = useRef();
   const hasNotifiedSettled = useRef(false);
+  const rotationStartValue = useRef(0);
+  const hasStartedFocusRotation = useRef(false);
+  const exitRotationTarget = useRef(null);
 
   // ---- CONSTANTS ----
-  const NORMAL_POSITION = new THREE.Vector3(0.6, -0.2, 0);
+  const NORMAL_POSITION = new THREE.Vector3(0.3, -0.1, 0);
   const NORMAL_SCALE = new THREE.Vector3(...scale);
   
   const FOCUS_POSITION = new THREE.Vector3(0, 0, 0);
-  const FOCUS_SCALE = new THREE.Vector3(8, 8, 8);
+  const FOCUS_SCALE = new THREE.Vector3(9.8, 9.8, 9.8);
   
   const BASE_ROT_Y = Math.PI * 1.5;
+  const DOUBLE_ROTATION = Math.PI * 4; // 720 degrees
+  const SINGLE_ROTATION = Math.PI * 2; // 360 degrees
 
   useFrame((_, delta) => {
     const g = groupRef.current;
@@ -33,20 +38,43 @@ function IPhoneModel({ scale, focusPhone, onClick, onSettled }) {
       ? FOCUS_SCALE
       : NORMAL_SCALE;
 
-    const targetRotationY = focusPhone
-      ? BASE_ROT_Y
-      : g.rotation.y + delta * 0.2;
-
-    g.position.lerp(targetPosition, delta * 3);
-    g.scale.lerp(targetScale, delta * 3);
+    g.position.lerp(targetPosition, delta * 2);
+    g.scale.lerp(targetScale, delta * 2);
 
     if (!focusPhone) {
-      g.rotation.y = targetRotationY;
+      // When unfocusing, do single rotation first
+      if (hasStartedFocusRotation.current !== false && exitRotationTarget.current !== null) {
+        // Perform single rotation exit
+        if (Math.abs(g.rotation.y - exitRotationTarget.current) > 0.05) {
+          g.rotation.y = THREE.MathUtils.lerp(g.rotation.y, exitRotationTarget.current, delta * 2);
+        } else {
+          // Done with exit rotation, resume idle
+          hasStartedFocusRotation.current = false;
+          exitRotationTarget.current = null;
+        }
+      } else {
+        // Normal idle rotation (slower)
+        g.rotation.y += delta * 0.1;
+      }
     } else {
+      // Start single rotation when first focused
+      if (!hasStartedFocusRotation.current) {
+        const currentAngle = g.rotation.y % (Math.PI * 2);
+        const targetAngle = BASE_ROT_Y % (Math.PI * 2);
+        let angleDiff = targetAngle - currentAngle;
+        if (angleDiff < 0) angleDiff += Math.PI * 2;
+        
+        rotationStartValue.current = g.rotation.y;
+        // Add 360 degrees plus the adjustment to land at BASE_ROT_Y
+        hasStartedFocusRotation.current = g.rotation.y + SINGLE_ROTATION + angleDiff;
+        // Set exit target when transitioning out
+        exitRotationTarget.current = hasStartedFocusRotation.current + SINGLE_ROTATION;
+      }
+
       g.rotation.y = THREE.MathUtils.lerp(
         g.rotation.y,
-        BASE_ROT_Y,
-        delta * 3
+        hasStartedFocusRotation.current,
+        delta * 2
       );
     }
 
@@ -54,9 +82,9 @@ function IPhoneModel({ scale, focusPhone, onClick, onSettled }) {
     if (focusPhone && !hasNotifiedSettled.current) {
       const positionDist = g.position.distanceTo(targetPosition);
       const scaleDiff = Math.abs(g.scale.x - targetScale.x);
-      const rotationDiff = Math.abs(g.rotation.y - BASE_ROT_Y);
+      const rotationDiff = Math.abs(g.rotation.y - hasStartedFocusRotation.current);
 
-      if (positionDist < 0.01 && scaleDiff < 0.05 && rotationDiff < 0.01) {
+      if (positionDist < 0.01 && scaleDiff < 0.05 && rotationDiff < 0.05) {
         hasNotifiedSettled.current = true;
         onSettled?.();
       }
@@ -85,10 +113,10 @@ function IPhoneModel({ scale, focusPhone, onClick, onSettled }) {
 function CameraRig({ focusPhone }) {
   useFrame(({ camera }, delta) => {
     const targetPos = focusPhone
-      ? new THREE.Vector3(0, 0, 1.6)   // centered & close
-      : new THREE.Vector3(0, 0, 2.5);  // default
+      ? new THREE.Vector3(0, 0, 2.2)   // centered & close but not too close
+      : new THREE.Vector3(0, 0, 3.4);  // default
 
-    camera.position.lerp(targetPos, delta * 3);
+    camera.position.lerp(targetPos, delta * 2.5);
     camera.lookAt(0, 0, 0);
   });
 
@@ -124,19 +152,14 @@ export default function Home() {
   const [SubIndex, setSubIndex] = useState(0);
   const [deleting, setdeleting] = useState(false);
   const [focusPhone, setFocusPhone] = useState(false);
-  const [iPhoneCenterAfterDelay, setIPhoneCenterAfterDelay] = useState(false);
   const [isIPhoneSettled, setIsIPhoneSettled] = useState(false);
   
   // iPhone scale state
   const [iPhoneScale, setIPhoneScale] = useState([7.5, 7.5, 7.5]);
 
-  // Delay iPhone animation until layout finishes
+  // Reset settled state when unfocusing
   useEffect(() => {
-    if (focusPhone) {
-      const timer = setTimeout(() => setIPhoneCenterAfterDelay(true), 600);
-      return () => clearTimeout(timer);
-    } else {
-      setIPhoneCenterAfterDelay(false);
+    if (!focusPhone) {
       setIsIPhoneSettled(false);
     }
   }, [focusPhone]);
@@ -172,15 +195,26 @@ export default function Home() {
       </div>
       <div className="relative z-10 h-full w-full max-w-7xl mx-auto px-4 flex">
         <motion.div
-          className="flex flex-col justify-center h-full overflow-hidden"
+          className="flex flex-col justify-center h-full"
           animate={{
             width: focusPhone ? "0%" : "50%",
-            opacity: focusPhone ? 0 : 1,
           }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
-          style={{ pointerEvents: focusPhone ? "none" : "auto" }}
+          style={{ pointerEvents: focusPhone ? "none" : "auto", overflow: "hidden" }}
         >
-          <div className="w-full lg:pr-24 mx-auto max-w-[48rem]">
+          <motion.div 
+            className="w-full lg:pr-24 mx-auto"
+            style={{ minWidth: "48rem", maxWidth: "48rem" }}
+            initial={{ opacity: 1 }}
+            animate={{
+              opacity: focusPhone ? 0 : 1,
+            }}
+            transition={{ 
+              duration: 0.3, 
+              ease: "easeInOut",
+              delay: focusPhone ? 0 : 0.3
+            }}
+          >
             <motion.div className="mb-3 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-white tracking-wide min-h-[1.6em]"
             initial={{opacity:0, y:20}}
             animate={{opacity:1, y:0}}
@@ -221,7 +255,7 @@ export default function Home() {
 
             </div>
 
-          </div>
+          </motion.div>
         </motion.div>
         <motion.div className="relative hidden lg:block h-full"
           animate={{
@@ -238,26 +272,20 @@ export default function Home() {
           <motion.div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-auto"
           animate={{
-            width: focusPhone ? "420px" : "min(45vw, 780px)",
-            height: focusPhone ? "820px" : "min(90vh, 820px)",
+            width: focusPhone ? "min(90vw, 600px)" : "min(45vw, 780px)",
+            height: focusPhone ? "min(95vh, 900px)" : "min(90vh, 820px)",
           }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
           >
-            {/* Framer Motion wrapper for Canvas scale animation */}
-            <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 1.2, ease: "easeOut" }}
-              style={{ width: '100%', height: '100%' }}
-            >
-              <Canvas camera={{ position: [0, 0, 2.5], fov: 45 }} style={{ width: '100%', height: '100%' }}>
+            <div className="w-full h-full">
+              <Canvas camera={{ position: [0, 0, 3.4], fov: 45 }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }} style={{ width: '100%', height: '100%' }}>
                 <ambientLight intensity={0.5} />
                 <directionalLight position={[0, 3, 2]} intensity={2} castShadow />
-                <CameraRig focusPhone={iPhoneCenterAfterDelay} />
-                <IPhoneModel scale={iPhoneScale} focusPhone={iPhoneCenterAfterDelay} onClick={() => !focusPhone && setFocusPhone(true)} onSettled={() => setIsIPhoneSettled(true)} />
+                <CameraRig focusPhone={focusPhone} />
+                <IPhoneModel scale={iPhoneScale} focusPhone={focusPhone} onClick={() => !focusPhone && setFocusPhone(true)} onSettled={() => setIsIPhoneSettled(true)} />
               </Canvas>
               
-              {iPhoneCenterAfterDelay && isIPhoneSettled && (
+              {focusPhone && isIPhoneSettled && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -312,7 +340,7 @@ export default function Home() {
                   </div>
                 </motion.div>
               )}
-            </motion.div>
+            </div>
           </motion.div>
         </motion.div>
       </div>

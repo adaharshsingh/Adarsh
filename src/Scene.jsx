@@ -4,7 +4,6 @@ import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from "re
 import * as THREE from "three";
 import useCameraMove from "./canvas/useCameraMove";
 import { CAMERA_STATES } from "./canvas/cameraStates";
-import PortfolioModal from "./components/PortfolioModal";
 import MobilePortfolioScene from "./components/MobilePortfolioScene";
 import DesktopPortfolio from "./ui/DesktopPortfolio";
 
@@ -349,16 +348,9 @@ export default function Scene() {
         />
       </Canvas>
 
-      {/* Portfolio Modal - Outside Canvas */}
-      <PortfolioModal 
-        isOpen={isPortfolioOpen} 
-        onClose={() => setIsPortfolioOpen(false)}
-        onEscapeWithAnimation={handleClosePortfolioWithAnimation}
-      />
-
       {/* Mobile Portfolio Scene - Outside Canvas */}
       <MobilePortfolioScene 
-        isOpen={isMobilePortfolioOpen} 
+        isMobilePortfolioOpen={isMobilePortfolioOpen} 
         onClose={() => setIsMobilePortfolioOpen(false)}
       />
     </>

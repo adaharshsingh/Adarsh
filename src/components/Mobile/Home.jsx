@@ -7,7 +7,7 @@ import ParticleBackground from "./ParticleBackground.jsx";
 import { FaXTwitter, FaLinkedin, FaGithub } from "react-icons/fa6";
 
 // iPhone Model Component with proper two-phase animation
-function IPhoneModel({ scale, focusPhone, onClick, onSettled }) {
+function IPhoneModel({ scale, focusPhone, onClick, onSettled, isMobile, onTransformUpdate }) {
   const { scene } = useGLTF("/models/iphone_air.glb");
   const groupRef = useRef();
   const hasNotifiedSettled = useRef(false);
@@ -20,7 +20,11 @@ function IPhoneModel({ scale, focusPhone, onClick, onSettled }) {
   const NORMAL_SCALE = new THREE.Vector3(...scale);
   
   const FOCUS_POSITION = new THREE.Vector3(0, 0, 0);
-  const FOCUS_SCALE = new THREE.Vector3(9.8, 9.8, 9.8);
+  const FOCUS_SCALE = new THREE.Vector3(
+    isMobile ? 11.5 : 9.8,
+    isMobile ? 11.5 : 9.8,
+    isMobile ? 11.5 : 9.8
+  );
   
   const BASE_ROT_Y = Math.PI * 1.5;
   const DOUBLE_ROTATION = Math.PI * 4; // 720 degrees
@@ -94,6 +98,16 @@ function IPhoneModel({ scale, focusPhone, onClick, onSettled }) {
     if (!focusPhone) {
       hasNotifiedSettled.current = false;
     }
+
+    // Pass transform data to parent for content overlay positioning
+    if (onTransformUpdate) {
+      onTransformUpdate({
+        position: g.position.clone(),
+        scaleX: g.scale.x,
+        scaleY: g.scale.y,
+        rotation: g.rotation.y
+      });
+    }
   });
 
   return (
@@ -110,11 +124,11 @@ function IPhoneModel({ scale, focusPhone, onClick, onSettled }) {
 }
 
 // CameraRig: smoothly adjust camera based on focusPhone state
-function CameraRig({ focusPhone }) {
+function CameraRig({ focusPhone, isMobile }) {
   useFrame(({ camera }, delta) => {
     const targetPos = focusPhone
-      ? new THREE.Vector3(0, 0, 2.2)   // centered & close but not too close
-      : new THREE.Vector3(0, 0, 3.4);  // default
+      ? new THREE.Vector3(0, 0, isMobile ? 2.5 : 2.2)   // centered & close but not too close
+      : new THREE.Vector3(0, 0, isMobile ? 4 : 3.4);  // default
 
     camera.position.lerp(targetPos, delta * 2.5);
     camera.lookAt(0, 0, 0);
@@ -153,9 +167,28 @@ export default function Home() {
   const [deleting, setdeleting] = useState(false);
   const [focusPhone, setFocusPhone] = useState(false);
   const [isIPhoneSettled, setIsIPhoneSettled] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [iPhoneTransform, setIPhoneTransform] = useState({ position: { x: 0, y: 0, z: 0 }, scaleX: 1, scaleY: 1, rotation: 0 });
   
   // iPhone scale state
   const [iPhoneScale, setIPhoneScale] = useState([7.5, 7.5, 7.5]);
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Auto-focus iPhone on mobile
+  useEffect(() => {
+    if (isMobile) {
+      setFocusPhone(true);
+    }
+  }, [isMobile]);
 
   // Reset settled state when unfocusing
   useEffect(() => {
@@ -197,22 +230,22 @@ export default function Home() {
         <motion.div
           className="flex flex-col justify-center h-full"
           animate={{
-            width: focusPhone ? "0%" : "50%",
+            width: focusPhone || isMobile ? "0%" : "50%",
           }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
-          style={{ pointerEvents: focusPhone ? "none" : "auto", overflow: "hidden" }}
+          style={{ pointerEvents: (focusPhone || isMobile) ? "none" : "auto", overflow: "hidden", display: isMobile ? "none" : "flex" }}
         >
           <motion.div 
             className="w-full lg:pr-24 mx-auto"
             style={{ minWidth: "48rem", maxWidth: "48rem" }}
             initial={{ opacity: 1 }}
             animate={{
-              opacity: focusPhone ? 0 : 1,
+              opacity: (focusPhone || isMobile) ? 0 : 1,
             }}
             transition={{ 
               duration: 0.3, 
               ease: "easeInOut",
-              delay: focusPhone ? 0 : 0.3
+              delay: (focusPhone || isMobile) ? 0 : 0.3
             }}
           >
             <motion.div className="mb-3 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-white tracking-wide min-h-[1.6em]"
@@ -257,9 +290,9 @@ export default function Home() {
 
           </motion.div>
         </motion.div>
-        <motion.div className="relative hidden lg:block h-full"
+        <motion.div className="relative h-full"
           animate={{
-            width: focusPhone ? "100%" : "50%",
+            width: (focusPhone || isMobile) ? "100%" : "50%",
           }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
         >
@@ -272,8 +305,8 @@ export default function Home() {
           <motion.div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-auto"
           animate={{
-            width: focusPhone ? "min(90vw, 600px)" : "min(45vw, 780px)",
-            height: focusPhone ? "min(95vh, 900px)" : "min(90vh, 820px)",
+            width: (focusPhone || isMobile) ? "min(90vw, 600px)" : "min(45vw, 780px)",
+            height: (focusPhone || isMobile) ? "min(95vh, 900px)" : "min(90vh, 820px)",
           }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
           >
@@ -281,24 +314,36 @@ export default function Home() {
               <Canvas camera={{ position: [0, 0, 3.4], fov: 45 }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }} style={{ width: '100%', height: '100%' }}>
                 <ambientLight intensity={0.5} />
                 <directionalLight position={[0, 3, 2]} intensity={2} castShadow />
-                <CameraRig focusPhone={focusPhone} />
-                <IPhoneModel scale={iPhoneScale} focusPhone={focusPhone} onClick={() => !focusPhone && setFocusPhone(true)} onSettled={() => setIsIPhoneSettled(true)} />
+                <CameraRig focusPhone={focusPhone} isMobile={isMobile} />
+                <IPhoneModel 
+                  scale={iPhoneScale} 
+                  focusPhone={focusPhone} 
+                  onClick={() => !focusPhone && setFocusPhone(true)} 
+                  onSettled={() => setIsIPhoneSettled(true)} 
+                  isMobile={isMobile}
+                  onTransformUpdate={setIPhoneTransform}
+                />
               </Canvas>
               
-              {focusPhone && isIPhoneSettled && (
+              {(focusPhone || isMobile) && isIPhoneSettled && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.2, duration: 0.6 }}
                   className="absolute inset-0 flex items-center justify-center z-20 pointer-events-auto"
+                  style={{
+                    transform: `translate(${iPhoneTransform.position.x * 2}px, ${iPhoneTransform.position.y * 2}px)`
+                  }}
                 >
                   <div
                     style={{
-                      width: "360px",
-                      height: "740px",
-                      borderRadius: "40px",
+                      width: isMobile ? "min(85vw, 340px)" : "360px",
+                      height: isMobile ? "min(82vh, 700px)" : "740px",
+                      borderRadius: isMobile ? "36px" : "40px",
                       overflow: "hidden",
                       background: "linear-gradient(135deg, #1cd8d2 0%, #00bf8f 100%)",
+                      transform: `scaleX(${Math.min(iPhoneTransform.scaleX / (isMobile ? 11.5 : 9.8), 1.05)}) scaleY(${Math.min(iPhoneTransform.scaleY / (isMobile ? 11.5 : 9.8), 1.05)})`,
+                      transition: "transform 0.1s ease-out"
                     }}
                   >
                     {/* Mobile Portfolio Content */}

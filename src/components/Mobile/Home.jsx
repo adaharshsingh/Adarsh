@@ -139,7 +139,7 @@ export default function Home() {
         <div className="absolute -top-32 -left-32 w-[70vw] sm:w-[500vw] md:w-[40vw] h-[70vw] sm:h-[50vw] md:h-[40vw] max-w-[500px] max-h-[500px] rounded-full bg-gradient-to-r from-[#302b63] via-[#00bf8f] to-[#1cd8d2] opacity-30 sm:opacity-20 md:opacity-10 blur-[100px] sm:blur-[130px] md:blur-[150px] animate-pulse"></div>
         <div className="absolute bottom-0 right-0 w-[70vw] sm:w-[500vw] md:w-[40vw] h-[70vw] sm:h-[50vw] md:h-[40vw] max-w-[500px] max-h-[500px] rounded-full bg-gradient-to-r from-[#302b63] via-[#00bf8f] to-[#1cd8d2] opacity-30 sm:opacity-20 md:opacity-10 blur-[100px] sm:blur-[130px] md:blur-[150px] animate-pulse delay-500"></div>
       </div>
-      <div className="relative bg-white z-10 h-full w-full max-w-7xl mx-auto px-4 flex">
+      <div className="relative z-10 h-full w-full max-w-7xl mx-auto px-4 flex">
         <motion.div
           className="flex flex-col justify-center h-full overflow-hidden"
           animate={{
@@ -149,7 +149,7 @@ export default function Home() {
           transition={{ duration: 0.6, ease: "easeInOut" }}
           style={{ pointerEvents: focusPhone ? "none" : "auto" }}
         >
-          <div className="w-full bg bg-red-700 lg:pr-24 mx-auto max-w-[48rem]">
+          <div className="w-full lg:pr-24 mx-auto max-w-[48rem]">
             <motion.div className="mb-3 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-white tracking-wide min-h-[1.6em]"
             initial={{opacity:0, y:20}}
             animate={{opacity:1, y:0}}
@@ -192,7 +192,7 @@ export default function Home() {
 
           </div>
         </motion.div>
-        <motion.div className="relative bg-blue-800 hidden lg:block h-full"
+        <motion.div className="relative hidden lg:block h-full"
           animate={{
             width: focusPhone ? "100%" : "50%",
           }}

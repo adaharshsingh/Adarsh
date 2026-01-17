@@ -12,45 +12,41 @@ function IPhoneModel({ scale, focusPhone, onClick }) {
   const groupRef = useRef();
 
   // ---- CONSTANTS ----
-  const HERO_POSITION = new THREE.Vector3(0.6, -0.2, 0);
-  const HERO_SCALE = new THREE.Vector3(...scale);
-  const BASE_ROT_Y = Math.PI * 1.5; // 270°
-  const IDLE_ROT_SPEED = 0.2;
-
-  const hasSettled = useRef(false);
+  const NORMAL_POSITION = new THREE.Vector3(0.6, -0.2, 0);
+  const NORMAL_SCALE = new THREE.Vector3(...scale);
+  
+  const FOCUS_POSITION = new THREE.Vector3(0, 0, 0);
+  const FOCUS_SCALE = new THREE.Vector3(8, 8, 8);
+  
+  const BASE_ROT_Y = Math.PI * 1.5;
 
   useFrame((_, delta) => {
     const g = groupRef.current;
     if (!g) return;
 
-    // ===== PHASE 1: ENTRY ANIMATION =====
-    if (!hasSettled.current) {
-      g.position.lerp(HERO_POSITION, delta * 2.5);
-      g.scale.lerp(HERO_SCALE, delta * 2.5);
+    const targetPosition = focusPhone
+      ? FOCUS_POSITION
+      : NORMAL_POSITION;
 
+    const targetScale = focusPhone
+      ? FOCUS_SCALE
+      : NORMAL_SCALE;
+
+    const targetRotationY = focusPhone
+      ? BASE_ROT_Y
+      : g.rotation.y + delta * 0.2;
+
+    g.position.lerp(targetPosition, delta * 3);
+    g.scale.lerp(targetScale, delta * 3);
+
+    if (!focusPhone) {
+      g.rotation.y = targetRotationY;
+    } else {
       g.rotation.y = THREE.MathUtils.lerp(
         g.rotation.y,
         BASE_ROT_Y,
-        delta * 2.5
+        delta * 3
       );
-
-      // ---- SNAP & LOCK when close enough ----
-      if (
-        g.position.distanceTo(HERO_POSITION) < 0.001 &&
-        Math.abs(g.rotation.y - BASE_ROT_Y) < 0.001
-      ) {
-        g.position.copy(HERO_POSITION);
-        g.scale.copy(HERO_SCALE);
-        g.rotation.y = BASE_ROT_Y;
-        hasSettled.current = true;
-      }
-
-      return;
-    }
-
-    // ===== PHASE 2: IDLE ROTATION ONLY =====
-    if (!focusPhone) {
-      g.rotation.y += delta * IDLE_ROT_SPEED;
     }
   });
 
@@ -65,6 +61,20 @@ function IPhoneModel({ scale, focusPhone, onClick }) {
       <primitive object={scene} />
     </group>
   );
+}
+
+// CameraRig: smoothly adjust camera based on focusPhone state
+function CameraRig({ focusPhone }) {
+  useFrame(({ camera }, delta) => {
+    const targetPos = focusPhone
+      ? new THREE.Vector3(0, 0, 1.6)   // centered & close
+      : new THREE.Vector3(0, 0, 2.5);  // default
+
+    camera.position.lerp(targetPos, delta * 3);
+    camera.lookAt(0, 0, 0);
+  });
+
+  return null;
 }
 
 const socials = [
@@ -98,7 +108,7 @@ export default function Home() {
   const [focusPhone, setFocusPhone] = useState(false);
   
   // iPhone scale state
-  const [iPhoneScale, setIPhoneScale] = useState([8, 8, 8]);
+  const [iPhoneScale, setIPhoneScale] = useState([7.5, 7.5, 7.5]);
 
   useEffect(() => {
     const current = roles[index];
@@ -129,14 +139,17 @@ export default function Home() {
         <div className="absolute -top-32 -left-32 w-[70vw] sm:w-[500vw] md:w-[40vw] h-[70vw] sm:h-[50vw] md:h-[40vw] max-w-[500px] max-h-[500px] rounded-full bg-gradient-to-r from-[#302b63] via-[#00bf8f] to-[#1cd8d2] opacity-30 sm:opacity-20 md:opacity-10 blur-[100px] sm:blur-[130px] md:blur-[150px] animate-pulse"></div>
         <div className="absolute bottom-0 right-0 w-[70vw] sm:w-[500vw] md:w-[40vw] h-[70vw] sm:h-[50vw] md:h-[40vw] max-w-[500px] max-h-[500px] rounded-full bg-gradient-to-r from-[#302b63] via-[#00bf8f] to-[#1cd8d2] opacity-30 sm:opacity-20 md:opacity-10 blur-[100px] sm:blur-[130px] md:blur-[150px] animate-pulse delay-500"></div>
       </div>
-      <div className="relative z-10 h-full  w-full max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2">
-        <motion.div 
-          className="flex flex-col justify-center h-full text-center lg:text-left relative"
-          animate={{ opacity: focusPhone ? 0 : 1, x: focusPhone ? -50 : 0 }}
+      <div className="relative bg-white z-10 h-full w-full max-w-7xl mx-auto px-4 flex">
+        <motion.div
+          className="flex flex-col justify-center h-full overflow-hidden"
+          animate={{
+            width: focusPhone ? "0%" : "50%",
+            opacity: focusPhone ? 0 : 1,
+          }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
           style={{ pointerEvents: focusPhone ? "none" : "auto" }}
         >
-          <div className="w-full lg:pr-24 mx-auto max-w-[48rem]">
+          <div className="w-full bg bg-red-700 lg:pr-24 mx-auto max-w-[48rem]">
             <motion.div className="mb-3 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-white tracking-wide min-h-[1.6em]"
             initial={{opacity:0, y:20}}
             animate={{opacity:1, y:0}}
@@ -179,21 +192,26 @@ export default function Home() {
 
           </div>
         </motion.div>
-        <div className="relative hidden lg:block h-full">
-          <div className="absolute top-1/2 -translate-y-1/2 pointer-events-none"
+        <motion.div className="relative bg-blue-800 hidden lg:block h-full"
+          animate={{
+            width: focusPhone ? "100%" : "50%",
+          }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
+        >
+          <div className="absolute  top-1/2 -translate-y-1/2 pointer-events-none"
           style={{
             right:"10px", width:"min(22vw , 410px)", height:"min(40vw , 760px)",borderRadius:"50%",
             filter:"blur(38px)", opacity:0.32,
             background:"conic-gradient(from 0deg , #1cd8d2, #00bf8f, #302b63,#1cd8d2)"
           }} />
-          <motion.div 
-          className="absolute -translate-y-[50%] object-contain select-none pointer-events-auto w-full h-full"
-          style={{
-            right:"-30px", width:"min(45vw , 780px)", maxHeight:"90vh"
+          <motion.div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-auto"
+          animate={{
+            width: focusPhone ? "420px" : "min(45vw, 780px)",
+            height: focusPhone ? "820px" : "min(90vh, 820px)",
           }}
-          initial={{opacity:0, y:40 , scale:0.98}}
-          animate={{opacity:1, y:0, scale:1}}
-          transition={{duration:0.8, delay:0.2}}>
+          transition={{ duration: 0.6, ease: "easeInOut" }}
+          >
             {/* Framer Motion wrapper for Canvas scale animation */}
             <motion.div
               initial={{ scale: 0.8 }}
@@ -204,7 +222,8 @@ export default function Home() {
               <Canvas camera={{ position: [0, 0, 2.5], fov: 45 }} style={{ width: '100%', height: '100%' }}>
                 <ambientLight intensity={0.5} />
                 <directionalLight position={[0, 3, 2]} intensity={2} castShadow />
-                <IPhoneModel scale={iPhoneScale} focusPhone={focusPhone} onClick={() => setFocusPhone(true)} />
+                <CameraRig focusPhone={focusPhone} />
+                <IPhoneModel scale={iPhoneScale} focusPhone={focusPhone} onClick={() => !focusPhone && setFocusPhone(true)} />
               </Canvas>
               
               {focusPhone && (
@@ -220,15 +239,41 @@ export default function Home() {
                       height: "740px",
                       borderRadius: "40px",
                       overflow: "hidden",
-                      background: "#000",
+                      background: "linear-gradient(135deg, #1cd8d2 0%, #00bf8f 100%)",
                     }}
                   >
                     {/* Mobile Portfolio Content */}
-                    <div className="text-white text-center py-20">
-                      <p>Portfolio Content Here</p>
+                    <div className="w-full h-full bg-gradient-to-b from-black via-black to-gray-900 text-white overflow-y-auto p-6 flex flex-col">
+                      <h2 className="text-2xl font-bold mb-4">Adarsh Kumar</h2>
+                      <p className="text-sm text-gray-300 mb-6">Web Developer | Software Designer | Creator</p>
+                      
+                      <div className="mb-6">
+                        <h3 className="text-lg font-semibold mb-2">Projects</h3>
+                        <div className="space-y-3">
+                          <div className="bg-gray-800 rounded-lg p-3">
+                            <p className="font-medium text-sm">Project Alpha</p>
+                            <p className="text-xs text-gray-400">React + Three.js</p>
+                          </div>
+                          <div className="bg-gray-800 rounded-lg p-3">
+                            <p className="font-medium text-sm">Project Beta</p>
+                            <p className="text-xs text-gray-400">Next.js + Tailwind</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mb-6">
+                        <h3 className="text-lg font-semibold mb-2">Skills</h3>
+                        <div className="flex flex-wrap gap-2">
+                          <span className="bg-blue-600 text-xs px-2 py-1 rounded">React</span>
+                          <span className="bg-blue-600 text-xs px-2 py-1 rounded">Three.js</span>
+                          <span className="bg-blue-600 text-xs px-2 py-1 rounded">Tailwind</span>
+                          <span className="bg-blue-600 text-xs px-2 py-1 rounded">JavaScript</span>
+                        </div>
+                      </div>
+
                       <button 
                         onClick={() => setFocusPhone(false)}
-                        className="mt-6 px-4 py-2 bg-white text-black rounded-full font-medium hover:bg-gray-200"
+                        className="mt-auto px-4 py-2 bg-white text-black rounded-full font-medium hover:bg-gray-200 w-full"
                       >
                         Back
                       </button>
@@ -238,7 +283,7 @@ export default function Home() {
               )}
             </motion.div>
           </motion.div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

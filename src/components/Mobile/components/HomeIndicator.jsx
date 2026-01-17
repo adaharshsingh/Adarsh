@@ -173,7 +173,7 @@ const HomeIndicator = memo(({ onSwipeUp }) => {
     <div className="relative z-50 py-1">
       <div
         ref={indicatorRef}
-        className="w-32 h-1 bg-white/80 rounded-full cursor-pointer hover:bg-white hover:scale-105 transition-colors shadow-[0_0_10px_rgba(255,255,255,0.5)]"
+        className="w-32 h-1 bg-gray-300/80 rounded-full cursor-pointer hover:bg-gray-200 hover:scale-105 transition-colors shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
         style={{
           touchAction: 'none',
         }}

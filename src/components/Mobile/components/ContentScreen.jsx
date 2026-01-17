@@ -258,10 +258,12 @@ const ContentScreen = memo(({ setFocusPhone }) => {
     }
   };
 
+  const isIframeScreen = currentScreen === "crave" || currentScreen === "apply" || currentScreen === "urbn" || currentScreen === "weather" || currentScreen === "gta6";
+
   return (
     <div className="w-full h-full flex flex-col relative">
       {/* Status Bar with Dynamic Island */}}
-      <div className="relative px-4 -mt-2 pb-1">
+      <div className={`relative pb-1 transition-colors duration-300 ${isIframeScreen ? 'bg-black -mx-6 px-10 -mt-6 pt-4' : 'px-4 -mt-2'}`}>
         <div className="flex justify-between items-center text-white text-[11px]">
           {/* Left side - Time */}
           <span className="font-semibold">{currentTime}</span>
@@ -349,8 +351,10 @@ const ContentScreen = memo(({ setFocusPhone }) => {
       
       {/* iOS Home Indicator - Swipe up to go home */}
       {currentScreen !== "home" && (
-        <div className="w-full flex justify-center pb-3 relative z-50">
-          <HomeIndicator onSwipeUp={() => setCurrentScreen("home")} />
+        <div className="absolute bottom-0 left-0 right-0 w-full flex justify-center pb-3 z-50 pointer-events-none">
+          <div className="pointer-events-auto">
+            <HomeIndicator onSwipeUp={() => setCurrentScreen("home")} />
+          </div>
         </div>
       )}
     </div>

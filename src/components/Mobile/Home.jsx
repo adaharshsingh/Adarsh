@@ -7,9 +7,10 @@ import ParticleBackground from "./ParticleBackground.jsx";
 import { FaXTwitter, FaLinkedin, FaGithub } from "react-icons/fa6";
 
 // iPhone Model Component with proper two-phase animation
-function IPhoneModel({ scale, focusPhone, onClick }) {
+function IPhoneModel({ scale, focusPhone, onClick, onSettled }) {
   const { scene } = useGLTF("/models/iphone_air.glb");
   const groupRef = useRef();
+  const hasNotifiedSettled = useRef(false);
 
   // ---- CONSTANTS ----
   const NORMAL_POSITION = new THREE.Vector3(0.6, -0.2, 0);
@@ -47,6 +48,23 @@ function IPhoneModel({ scale, focusPhone, onClick }) {
         BASE_ROT_Y,
         delta * 3
       );
+    }
+
+    // Check if settled when focused
+    if (focusPhone && !hasNotifiedSettled.current) {
+      const positionDist = g.position.distanceTo(targetPosition);
+      const scaleDiff = Math.abs(g.scale.x - targetScale.x);
+      const rotationDiff = Math.abs(g.rotation.y - BASE_ROT_Y);
+
+      if (positionDist < 0.01 && scaleDiff < 0.05 && rotationDiff < 0.01) {
+        hasNotifiedSettled.current = true;
+        onSettled?.();
+      }
+    }
+
+    // Reset settled flag when unfocused
+    if (!focusPhone) {
+      hasNotifiedSettled.current = false;
     }
   });
 
@@ -106,9 +124,22 @@ export default function Home() {
   const [SubIndex, setSubIndex] = useState(0);
   const [deleting, setdeleting] = useState(false);
   const [focusPhone, setFocusPhone] = useState(false);
+  const [iPhoneCenterAfterDelay, setIPhoneCenterAfterDelay] = useState(false);
+  const [isIPhoneSettled, setIsIPhoneSettled] = useState(false);
   
   // iPhone scale state
   const [iPhoneScale, setIPhoneScale] = useState([7.5, 7.5, 7.5]);
+
+  // Delay iPhone animation until layout finishes
+  useEffect(() => {
+    if (focusPhone) {
+      const timer = setTimeout(() => setIPhoneCenterAfterDelay(true), 600);
+      return () => clearTimeout(timer);
+    } else {
+      setIPhoneCenterAfterDelay(false);
+      setIsIPhoneSettled(false);
+    }
+  }, [focusPhone]);
 
   useEffect(() => {
     const current = roles[index];
@@ -222,15 +253,15 @@ export default function Home() {
               <Canvas camera={{ position: [0, 0, 2.5], fov: 45 }} style={{ width: '100%', height: '100%' }}>
                 <ambientLight intensity={0.5} />
                 <directionalLight position={[0, 3, 2]} intensity={2} castShadow />
-                <CameraRig focusPhone={focusPhone} />
-                <IPhoneModel scale={iPhoneScale} focusPhone={focusPhone} onClick={() => !focusPhone && setFocusPhone(true)} />
+                <CameraRig focusPhone={iPhoneCenterAfterDelay} />
+                <IPhoneModel scale={iPhoneScale} focusPhone={iPhoneCenterAfterDelay} onClick={() => !focusPhone && setFocusPhone(true)} onSettled={() => setIsIPhoneSettled(true)} />
               </Canvas>
               
-              {focusPhone && (
+              {iPhoneCenterAfterDelay && isIPhoneSettled && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.6, duration: 0.6 }}
+                  transition={{ delay: 0.2, duration: 0.6 }}
                   className="absolute inset-0 flex items-center justify-center z-20 pointer-events-auto"
                 >
                   <div

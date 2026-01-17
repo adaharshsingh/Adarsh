@@ -5,6 +5,7 @@ import ParticleBackground from "./ParticleBackground.jsx";
 import IPhoneModel from "./components/IPhoneModel.jsx";
 import CameraRig from "./components/CameraRig.jsx";
 import SocialLinks from "./components/SocialLinks.jsx";
+import ContentScreen from "./components/ContentScreen.jsx";
 
 // Preload the iPhone model
 import { useGLTF } from "@react-three/drei";
@@ -29,46 +30,15 @@ const MobileContentOverlay = memo(({ focusPhone, isIPhoneSettled, isMobile, iPho
           height: isMobile ? "min(82vh, 700px)" : "740px",
           borderRadius: isMobile ? "36px" : "40px",
           overflow: "hidden",
-          background: "linear-gradient(135deg, #1cd8d2 0%, #00bf8f 100%)",
+          backgroundImage: "url('/Group 38.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
           transform: `scaleX(${Math.min(iPhoneTransform.scaleX / (isMobile ? 11.5 : 9.8), 1.05)}) scaleY(${Math.min(iPhoneTransform.scaleY / (isMobile ? 11.5 : 9.8), 1.05)})`,
           transition: "transform 0.1s ease-out"
         }}
       >
-        <div className="w-full h-full bg-gradient-to-b from-black via-black to-gray-900 text-white overflow-y-auto p-6 flex flex-col">
-          <h2 className="text-2xl font-bold mb-4">Adarsh Kumar</h2>
-          <p className="text-sm text-gray-300 mb-6">Web Developer | Software Designer | Creator</p>
-          
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2">Projects</h3>
-            <div className="space-y-3">
-              <div className="bg-gray-800 rounded-lg p-3">
-                <p className="font-medium text-sm">Project Alpha</p>
-                <p className="text-xs text-gray-400">React + Three.js</p>
-              </div>
-              <div className="bg-gray-800 rounded-lg p-3">
-                <p className="font-medium text-sm">Project Beta</p>
-                <p className="text-xs text-gray-400">Next.js + Tailwind</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2">Skills</h3>
-            <div className="flex flex-wrap gap-2">
-              <span className="bg-blue-600 text-xs px-2 py-1 rounded">React</span>
-              <span className="bg-blue-600 text-xs px-2 py-1 rounded">Three.js</span>
-              <span className="bg-blue-600 text-xs px-2 py-1 rounded">Tailwind</span>
-              <span className="bg-blue-600 text-xs px-2 py-1 rounded">JavaScript</span>
-            </div>
-          </div>
-
-          <button 
-            onClick={() => setFocusPhone(false)}
-            className="mt-auto px-4 py-2 bg-white text-black rounded-full font-medium hover:bg-gray-200 w-full"
-          >
-            Back
-          </button>
-        </div>
+        <ContentScreen setFocusPhone={setFocusPhone} />
       </div>
     </motion.div>
   );

@@ -97,10 +97,10 @@ const Dock = memo(({ onScreenChange }) => {
     },
     {
       id: 2,
-      icon: "/icons/gmail.png",
+      icon: "/icons/email.png",
       alt: "Email",
       ariaLabel: "Send Email",
-      action: () => window.location.href = 'mailto:your.email@example.com'
+      action: () => window.location.href = 'mailto:Mr.AadarshkumarSingh@gmail.com'
     },
     {
       id: 3,
@@ -111,10 +111,17 @@ const Dock = memo(({ onScreenChange }) => {
     },
     {
       id: 4,
-      icon: "/icons/info.svg",
+      icon: "/icons/resume.png",
       alt: "Resume",
-      ariaLabel: "View Resume",
-      action: () => onScreenChange?.("resume")
+      ariaLabel: "Download Resume",
+      action: () => {
+        const link = document.createElement('a');
+        link.href = '/files/resume.pdf';
+        link.download = 'Adarsh_Kumar_Resume.pdf';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
     },
   ];
 

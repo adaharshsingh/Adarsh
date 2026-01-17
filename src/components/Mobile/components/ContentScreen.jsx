@@ -4,12 +4,12 @@ import Dock from './Dock';
 import HomeIndicator from './HomeIndicator';
 
 const iosApps = [
-  { id: 1, name: "LeetCode", icon: "/icons/leetcode.svg", color: "from-orange-500 to-orange-600", screen: "leetcode" },
-  { id: 2, name: "GFG", icon: "/icons/gfg.svg", color: "from-green-500 to-green-700", screen: "gfg" },
+  { id: 1, name: "LeetCode", icon: "/icons/leetcode.svg", color: "from-orange-400 to-orange-500", screen: "leetcode", url: "https://leetcode.com/u/Adaharsh/" },
+  { id: 2, name: "GFG", icon: "/icons/gfg.svg", color: "from-green-400 to-green-500", screen: "gfg", url: "https://www.geeksforgeeks.org/user/mraadarshkumarsingh/" },
   { id: 3, name: "Crave", icon: "/icons/Crave.png", color: "from-red-500 to-pink-600", screen: "crave" },
-  { id: 4, name: "Weather", icon: "/icons/weather.svg", color: "from-blue-400 to-blue-600", screen: "weather" },
-  { id: 5, name: "GitHub", icon: "/icons/github.svg", color: "from-gray-700 to-gray-900", screen: "github" },
-  { id: 6, name: "X", icon: "/icons/x.svg", color: "from-black to-gray-800", screen: "x" },
+  { id: 4, name: "Weather", icon: "/icons/weather.png", color: "from-blue-400 to-blue-600", screen: "weather" },
+  { id: 5, name: "GitHub", icon: "/icons/github.svg", color: "from-gray-700 to-gray-900", screen: "github", url: "https://github.com/adaharshsingh" },
+  { id: 6, name: "GTA VI", icon: "/icons/gta6.png", color: "from-blue-600 to-blue-800", screen: "gta6" },
   { id: 7, name: "URBN", icon: "/icons/Urbn.png", color: "from-purple-500 to-purple-700", screen: "urbn" },
   { id: 8, name: "Apply", icon: "/icons/Applyd.png", color: "from-blue-500 to-indigo-600", screen: "apply" },
 ];
@@ -117,35 +117,33 @@ const CraveScreen = memo(({ onBack }) => (
 
 CraveScreen.displayName = 'CraveScreen';
 
-const WeatherScreen = memo(() => (
-  <div className="space-y-4">
-    <h2 className="text-2xl font-bold text-blue-400">Weather</h2>
-    <div className="bg-gradient-to-br from-blue-500/30 to-blue-700/30 backdrop-blur-md rounded-3xl p-6 border border-blue-400/30">
-      <div className="text-center">
-        <p className="text-sm text-gray-300 mb-2">New Delhi, India</p>
-        <div className="text-7xl my-4">☀️</div>
-        <p className="text-6xl font-bold mb-2">28°</p>
-        <p className="text-lg text-gray-300">Sunny</p>
-      </div>
-      <div className="grid grid-cols-3 gap-3 mt-6">
-        <div className="bg-white/10 rounded-xl p-3 text-center">
-          <p className="text-xs text-gray-400">Wind</p>
-          <p className="text-sm font-semibold mt-1">12 km/h</p>
-        </div>
-        <div className="bg-white/10 rounded-xl p-3 text-center">
-          <p className="text-xs text-gray-400">Humidity</p>
-          <p className="text-sm font-semibold mt-1">65%</p>
-        </div>
-        <div className="bg-white/10 rounded-xl p-3 text-center">
-          <p className="text-xs text-gray-400">UV Index</p>
-          <p className="text-sm font-semibold mt-1">6</p>
-        </div>
-      </div>
-    </div>
+const WeatherScreen = memo(({ onBack }) => (
+  <div className="flex flex-col h-full bg-black">
+    <iframe
+      src="https://propacity-alpha.vercel.app/"
+      className="w-full h-full border-0"
+      title="Propacity Real Estate"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+    />
   </div>
 ));
 
 WeatherScreen.displayName = 'WeatherScreen';
+
+const GTA6Screen = memo(({ onBack }) => (
+  <div className="flex flex-col h-full bg-black">
+    <iframe
+      src="https://gta-vi-brown.vercel.app/"
+      className="w-full h-full border-0"
+      title="GTA VI Website"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+    />
+  </div>
+));
+
+GTA6Screen.displayName = 'GTA6Screen';
 
 const GitHubScreen = memo(() => (
   <div className="space-y-4">
@@ -263,13 +261,13 @@ const ContentScreen = memo(({ setFocusPhone }) => {
   return (
     <div className="w-full h-full flex flex-col relative">
       {/* Status Bar with Dynamic Island */}}
-      <div className="relative px-4 pt-2 pb-1">
+      <div className="relative px-4 -mt-2 pb-1">
         <div className="flex justify-between items-center text-white text-[11px]">
           {/* Left side - Time */}
           <span className="font-semibold">{currentTime}</span>
           
           {/* Center - Dynamic Island */}
-          <div className="absolute left-1/2 -translate-x-1/2">
+          <div className="absolute left-1/2 -translate-x-1/2 -top-3">
             <img src="/icons/Dynamic Island.png" alt="Dynamic Island" className="h-7 w-auto object-contain" />
           </div>
           
@@ -291,7 +289,7 @@ const ContentScreen = memo(({ setFocusPhone }) => {
       </div>
 
       {/* Main Content */}
-      <div className={`flex-1 overflow-y-auto ${currentScreen === "crave" || currentScreen === "apply" || currentScreen === "urbn" ? "px-0 pb-0" : "px-6 pb-6"}`}>
+      <div className={`flex-1 overflow-y-auto ${currentScreen === "crave" || currentScreen === "apply" || currentScreen === "urbn" || currentScreen === "weather" || currentScreen === "gta6" ? "px-0 pb-0" : "px-6 pb-6"}`}>
         {currentScreen === "home" ? (
           <div className="space-y-8 pt-4">
             {/* Widget Section */}
@@ -324,7 +322,9 @@ const ContentScreen = memo(({ setFocusPhone }) => {
         ) : currentScreen === "crave" ? (
           <CraveScreen onBack={() => setCurrentScreen("home")} />
         ) : currentScreen === "weather" ? (
-          <WeatherScreen />
+          <WeatherScreen onBack={() => setCurrentScreen("home")} />
+        ) : currentScreen === "gta6" ? (
+          <GTA6Screen onBack={() => setCurrentScreen("home")} />
         ) : currentScreen === "github" ? (
           <GitHubScreen />
         ) : currentScreen === "x" ? (
@@ -345,7 +345,7 @@ const ContentScreen = memo(({ setFocusPhone }) => {
       </div>
 
       {/* iOS-like Dock */}
-      {currentScreen !== "crave" && currentScreen !== "apply" && currentScreen !== "urbn" && <Dock onScreenChange={handleScreenChange} />}
+      {currentScreen !== "crave" && currentScreen !== "apply" && currentScreen !== "urbn" && currentScreen !== "weather" && currentScreen !== "gta6" && <Dock onScreenChange={handleScreenChange} />}
       
       {/* iOS Home Indicator - Swipe up to go home */}
       {currentScreen !== "home" && (

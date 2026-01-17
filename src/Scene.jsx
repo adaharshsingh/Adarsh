@@ -1,11 +1,13 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Html, useGLTF } from "@react-three/drei";
-import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from "react";
+import { useRef, useEffect, useState, forwardRef, useImperativeHandle, lazy, Suspense } from "react";
 import * as THREE from "three";
 import useCameraMove from "./canvas/useCameraMove";
 import { CAMERA_STATES } from "./canvas/cameraStates";
-import MobilePortfolioScene from "./components/MobilePortfolioScene";
-import DesktopPortfolio from "./ui/DesktopPortfolio";
+import MacBookApp from "./components/MacBook/App";
+import "./components/MacBook/App.css";
+
+const MobilePortfolioScene = lazy(() => import("./components/MobilePortfolioScene"));
 
 function WorkspaceInner({ isPortfolioOpen, setIsPortfolioOpen, isMobilePortfolioOpen, setIsMobilePortfolioOpen }, ref) {
   const { scene } = useGLTF("/models/Untitled.glb");
@@ -147,7 +149,7 @@ function WorkspaceInner({ isPortfolioOpen, setIsPortfolioOpen, isMobilePortfolio
 
   // Mouse cursor tracking with smooth movement (ONLY in GALLERY view)
   useFrame(({ mouse }) => {
-    if (isMobile || !mouseRef.current || isScrolling.current || currentCameraState !== "GALLERY") return;
+    if (isMobile || !mouseRef.current || isScrolling.current || currentCameraState !== "GALLERY" || isPortfolioOpen || isMobilePortfolioOpen) return;
 
     // Larger movement area (2x the previous size)
     const MAX_MOVE_X = 1.0;   // left-right slide (doubled)
@@ -261,18 +263,24 @@ function WorkspaceInner({ isPortfolioOpen, setIsPortfolioOpen, isMobilePortfolio
         <group rotation-x={-0.14}>
           <Html transform occlude scale={[0.139 * macbookScale, 0.122 * macbookScale, 1]}>
             <div
-              onClick={() => {
-                moveTo(CAMERA_STATES.MACBOOK);
-                setCurrentCameraState("MACBOOK");
-                
-                // Camera animation is 1.2s, then open portfolio
-                setTimeout(() => {
-                  setIsAnimatingMacbook(true);
-                }, 1200);
+              onClick={(e) => {
+                if (!isPortfolioOpen) {
+                  moveTo(CAMERA_STATES.MACBOOK);
+                  setCurrentCameraState("MACBOOK");
+                  
+                  // Camera animation is 1.2s, then open portfolio
+                  setTimeout(() => {
+                    setIsAnimatingMacbook(true);
+                  }, 1200);
+                }
               }}
-              style={{ cursor: "pointer" }}
+              style={{ 
+                cursor: isPortfolioOpen ? "default" : "pointer",
+                width: '1280px',
+                height: '800px'
+              }}
             >
-              <DesktopPortfolio />
+              <MacBookApp />
             </div>
           </Html>
         </group>
@@ -312,6 +320,7 @@ export default function Scene() {
       <Canvas 
         camera={{ position: [49, 19, 40], fov: 45 }} 
         shadows
+        frameloop={isPortfolioOpen || isMobilePortfolioOpen ? "never" : "always"}
         style={{
           opacity: isPortfolioOpen || isMobilePortfolioOpen ? 0 : 1,
           transition: "opacity 0.8s ease",
@@ -348,11 +357,70 @@ export default function Scene() {
         />
       </Canvas>
 
+      {/* Desktop Portfolio Full Screen */}
+      {isPortfolioOpen && (
+        <div style={{ 
+          position: "fixed", 
+          inset: 0, 
+          width: "100vw", 
+          height: "100vh", 
+          overflow: "auto",
+          zIndex: 9999,
+          background: "linear-gradient(to bottom, #0a0a0f 0%, #1a1a2e 100%)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        }}>
+          {/* Close Button */}
+          <button
+            onClick={handleClosePortfolioWithAnimation}
+            style={{
+              position: "fixed",
+              top: "20px",
+              right: "20px",
+              padding: "12px 20px",
+              background: "#fdb813",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontSize: "14px",
+              fontWeight: "bold",
+              zIndex: 50,
+              color: "#000",
+              transition: "all 0.3s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#ff6b6b";
+              e.currentTarget.style.transform = "scale(1.05)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#fdb813";
+              e.currentTarget.style.transform = "scale(1)";
+            }}
+          >
+            ← Back
+          </button>
+
+          {/* MacBook App */}
+          <div style={{
+            width: "100vw",
+            height: "100vh",
+            overflow: "hidden",
+          }}>
+            <MacBookApp />
+          </div>
+        </div>
+      )}
+
       {/* Mobile Portfolio Scene - Outside Canvas */}
-      <MobilePortfolioScene 
-        isMobilePortfolioOpen={isMobilePortfolioOpen} 
-        onClose={() => setIsMobilePortfolioOpen(false)}
-      />
+      <Suspense fallback={null}>
+        {isMobilePortfolioOpen && (
+          <MobilePortfolioScene 
+            isMobilePortfolioOpen={isMobilePortfolioOpen} 
+            onClose={() => setIsMobilePortfolioOpen(false)}
+          />
+        )}
+      </Suspense>
     </>
   );
 }

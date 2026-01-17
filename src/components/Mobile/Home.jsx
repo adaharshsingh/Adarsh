@@ -1,201 +1,85 @@
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState, memo, Suspense } from "react";
+import { Canvas } from "@react-three/fiber";
 import { motion } from "framer-motion";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { useGLTF, OrbitControls } from "@react-three/drei";
-import * as THREE from "three";
 import ParticleBackground from "./ParticleBackground.jsx";
-import { FaXTwitter, FaLinkedin, FaGithub } from "react-icons/fa6";
+import IPhoneModel from "./components/IPhoneModel.jsx";
+import CameraRig from "./components/CameraRig.jsx";
+import SocialLinks from "./components/SocialLinks.jsx";
 
-// iPhone Model Component with proper two-phase animation
-function IPhoneModel({ scale, focusPhone, onClick, onSettled, isMobile, onTransformUpdate }) {
-  const { scene } = useGLTF("/models/iphone_air.glb");
-  const groupRef = useRef();
-  const hasNotifiedSettled = useRef(false);
-  const rotationStartValue = useRef(0);
-  const hasStartedFocusRotation = useRef(false);
-  const exitRotationTarget = useRef(null);
+// Preload the iPhone model
+import { useGLTF } from "@react-three/drei";
+useGLTF.preload("/models/iphone_air.glb");
 
-  // ---- CONSTANTS ----
-  const NORMAL_POSITION = new THREE.Vector3(0.3, -0.1, 0);
-  const NORMAL_SCALE = new THREE.Vector3(...scale);
-  
-  const FOCUS_POSITION = new THREE.Vector3(0, 0, 0);
-  const FOCUS_SCALE = new THREE.Vector3(
-    isMobile ? 11.5 : 9.8,
-    isMobile ? 11.5 : 9.8,
-    isMobile ? 11.5 : 9.8
-  );
-  
-  const BASE_ROT_Y = Math.PI * 1.5;
-  const DOUBLE_ROTATION = Math.PI * 4; // 720 degrees
-  const SINGLE_ROTATION = Math.PI * 2; // 360 degrees
-
-  useFrame((_, delta) => {
-    const g = groupRef.current;
-    if (!g) return;
-
-    const targetPosition = focusPhone
-      ? FOCUS_POSITION
-      : NORMAL_POSITION;
-
-    const targetScale = focusPhone
-      ? FOCUS_SCALE
-      : NORMAL_SCALE;
-
-    g.position.lerp(targetPosition, delta * 2);
-    g.scale.lerp(targetScale, delta * 2);
-
-    if (!focusPhone) {
-      // When unfocusing, do single rotation first
-      if (hasStartedFocusRotation.current !== false && exitRotationTarget.current !== null) {
-        // Perform single rotation exit
-        if (Math.abs(g.rotation.y - exitRotationTarget.current) > 0.05) {
-          g.rotation.y = THREE.MathUtils.lerp(g.rotation.y, exitRotationTarget.current, delta * 2);
-        } else {
-          // Done with exit rotation, resume idle
-          hasStartedFocusRotation.current = false;
-          exitRotationTarget.current = null;
-        }
-      } else {
-        // Normal idle rotation (slower)
-        g.rotation.y += delta * 0.1;
-      }
-    } else {
-      // Start single rotation when first focused
-      if (!hasStartedFocusRotation.current) {
-        const currentAngle = g.rotation.y % (Math.PI * 2);
-        const targetAngle = BASE_ROT_Y % (Math.PI * 2);
-        let angleDiff = targetAngle - currentAngle;
-        if (angleDiff < 0) angleDiff += Math.PI * 2;
-        
-        rotationStartValue.current = g.rotation.y;
-        // Add 360 degrees plus the adjustment to land at BASE_ROT_Y
-        hasStartedFocusRotation.current = g.rotation.y + SINGLE_ROTATION + angleDiff;
-        // Set exit target when transitioning out
-        exitRotationTarget.current = hasStartedFocusRotation.current + SINGLE_ROTATION;
-      }
-
-      g.rotation.y = THREE.MathUtils.lerp(
-        g.rotation.y,
-        hasStartedFocusRotation.current,
-        delta * 2
-      );
-    }
-
-    // Check if settled when focused
-    if (focusPhone && !hasNotifiedSettled.current) {
-      const positionDist = g.position.distanceTo(targetPosition);
-      const scaleDiff = Math.abs(g.scale.x - targetScale.x);
-      const rotationDiff = Math.abs(g.rotation.y - hasStartedFocusRotation.current);
-
-      if (positionDist < 0.01 && scaleDiff < 0.05 && rotationDiff < 0.05) {
-        hasNotifiedSettled.current = true;
-        onSettled?.();
-      }
-    }
-
-    // Reset settled flag when unfocused
-    if (!focusPhone) {
-      hasNotifiedSettled.current = false;
-    }
-
-    // Pass transform data to parent for content overlay positioning
-    if (onTransformUpdate) {
-      onTransformUpdate({
-        position: g.position.clone(),
-        scaleX: g.scale.x,
-        scaleY: g.scale.y,
-        rotation: g.rotation.y
-      });
-    }
-  });
+const MobileContentOverlay = memo(({ focusPhone, isIPhoneSettled, isMobile, iPhoneTransform, setFocusPhone }) => {
+  if (!focusPhone || !isIPhoneSettled) return null;
 
   return (
-    <group
-      ref={groupRef}
-      position={[0, 0, 0]}
-      scale={[4, 4, 4]}
-      rotation={[0, 0, 0]}
-      onClick={onClick}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: 0.2, duration: 0.6 }}
+      className="absolute inset-0 flex items-center justify-center z-20 pointer-events-auto"
+      style={{
+        transform: `translate(${iPhoneTransform.position.x * 2}px, ${iPhoneTransform.position.y * 2}px)`
+      }}
     >
-      <primitive object={scene} />
-    </group>
+      <div
+        style={{
+          width: isMobile ? "min(85vw, 340px)" : "360px",
+          height: isMobile ? "min(82vh, 700px)" : "740px",
+          borderRadius: isMobile ? "36px" : "40px",
+          overflow: "hidden",
+          background: "linear-gradient(135deg, #1cd8d2 0%, #00bf8f 100%)",
+          transform: `scaleX(${Math.min(iPhoneTransform.scaleX / (isMobile ? 11.5 : 9.8), 1.05)}) scaleY(${Math.min(iPhoneTransform.scaleY / (isMobile ? 11.5 : 9.8), 1.05)})`,
+          transition: "transform 0.1s ease-out"
+        }}
+      >
+        <div className="w-full h-full bg-gradient-to-b from-black via-black to-gray-900 text-white overflow-y-auto p-6 flex flex-col">
+          <h2 className="text-2xl font-bold mb-4">Adarsh Kumar</h2>
+          <p className="text-sm text-gray-300 mb-6">Web Developer | Software Designer | Creator</p>
+          
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-2">Projects</h3>
+            <div className="space-y-3">
+              <div className="bg-gray-800 rounded-lg p-3">
+                <p className="font-medium text-sm">Project Alpha</p>
+                <p className="text-xs text-gray-400">React + Three.js</p>
+              </div>
+              <div className="bg-gray-800 rounded-lg p-3">
+                <p className="font-medium text-sm">Project Beta</p>
+                <p className="text-xs text-gray-400">Next.js + Tailwind</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-2">Skills</h3>
+            <div className="flex flex-wrap gap-2">
+              <span className="bg-blue-600 text-xs px-2 py-1 rounded">React</span>
+              <span className="bg-blue-600 text-xs px-2 py-1 rounded">Three.js</span>
+              <span className="bg-blue-600 text-xs px-2 py-1 rounded">Tailwind</span>
+              <span className="bg-blue-600 text-xs px-2 py-1 rounded">JavaScript</span>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => setFocusPhone(false)}
+            className="mt-auto px-4 py-2 bg-white text-black rounded-full font-medium hover:bg-gray-200 w-full"
+          >
+            Back
+          </button>
+        </div>
+      </div>
+    </motion.div>
   );
-}
+});
 
-// CameraRig: smoothly adjust camera based on focusPhone state
-function CameraRig({ focusPhone, isMobile }) {
-  useFrame(({ camera }, delta) => {
-    const targetPos = focusPhone
-      ? new THREE.Vector3(0, 0, isMobile ? 2.5 : 2.2)   // centered & close but not too close
-      : new THREE.Vector3(0, 0, isMobile ? 4 : 3.4);  // default
+MobileContentOverlay.displayName = 'MobileContentOverlay';
 
-    camera.position.lerp(targetPos, delta * 2.5);
-    camera.lookAt(0, 0, 0);
-  });
-
-  return null;
-}
-
-const socials = [
-  {
-    Icon:FaXTwitter,label:"Twitter",href:"https://adarsh-plum.vercel.app/"
-  },
-  {
-    Icon:FaLinkedin,label:"LinkedIn",href:"https://www.linkedin.com/in/adarsh-kumar-singh-226228239/"
-  },
-  {
-    Icon:FaGithub,label:"GitHub",href:"https://github.com/adaharshsingh"},
-  ]
-
-  const glowVariants = {
-    initial: {scale:1, y:0,filter:"drop-shadow(0 0 0 rgba(0,0,0,0))"},
-    hover: {scale:1.2, y:-3, filter:"drop-shadow(0 0 8px rgba(13,88,204,0.9)) drop-shadow(0 0 18px rgba(16,185,129,0.8))",
-    transition: {type:"spring", stiffness:300,damping:15},
-  },
-  tap:{scale:0.95,y:0,transition:{duration:0.98}}
-}
-
-
-export default function Home() {
-  const roles = useMemo(
-    () => ["Web Developer", "Software Designer", "Creator"],
-    []
-  );
+const TypewriterText = memo(({ roles }) => {
   const [index, setindex] = useState(0);
   const [SubIndex, setSubIndex] = useState(0);
   const [deleting, setdeleting] = useState(false);
-  const [focusPhone, setFocusPhone] = useState(false);
-  const [isIPhoneSettled, setIsIPhoneSettled] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [iPhoneTransform, setIPhoneTransform] = useState({ position: { x: 0, y: 0, z: 0 }, scaleX: 1, scaleY: 1, rotation: 0 });
-  
-  // iPhone scale state
-  const [iPhoneScale, setIPhoneScale] = useState([7.5, 7.5, 7.5]);
-
-  // Detect mobile device
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Auto-focus iPhone on mobile
-  useEffect(() => {
-    if (isMobile) {
-      setFocusPhone(true);
-    }
-  }, [isMobile]);
-
-  // Reset settled state when unfocusing
-  useEffect(() => {
-    if (!focusPhone) {
-      setIsIPhoneSettled(false);
-    }
-  }, [focusPhone]);
 
   useEffect(() => {
     const current = roles[index];
@@ -216,6 +100,63 @@ export default function Home() {
     );
     return () => clearTimeout(timeout);
   }, [SubIndex, index, deleting, roles]);
+
+  return (
+    <motion.div
+      className="mb-3 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-white tracking-wide min-h-[1.6em]"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+    >
+      <span>{roles[index].substring(0, SubIndex)}</span>
+      <span
+        className="inline-block w-[2px] ml-1 bg-white animate-pulse align-middle"
+        style={{ height: "1em" }}
+      />
+    </motion.div>
+  );
+});
+
+TypewriterText.displayName = 'TypewriterText';
+
+export default function Home() {
+  const roles = useMemo(
+    () => ["Web Developer", "Software Designer", "Creator"],
+    []
+  );
+  const [focusPhone, setFocusPhone] = useState(false);
+  const [isIPhoneSettled, setIsIPhoneSettled] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [iPhoneTransform, setIPhoneTransform] = useState({ position: { x: 0, y: 0, z: 0 }, scaleX: 1, scaleY: 1, rotation: 0 });
+  
+  const iPhoneScale = useMemo(() => [7.5, 7.5, 7.5], []);
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Auto-focus iPhone on mobile (using timeout to avoid cascading renders)
+  useEffect(() => {
+    if (isMobile) {
+      const timer = setTimeout(() => setFocusPhone(true), 0);
+      return () => clearTimeout(timer);
+    }
+  }, [isMobile]);
+
+  // Reset settled state when unfocusing
+  useEffect(() => {
+    if (!focusPhone) {
+      const timer = setTimeout(() => setIsIPhoneSettled(false), 0);
+      return () => clearTimeout(timer);
+    }
+  }, [focusPhone]);
+
   return (
     <section
       id="Home"
@@ -248,16 +189,7 @@ export default function Home() {
               delay: (focusPhone || isMobile) ? 0 : 0.3
             }}
           >
-            <motion.div className="mb-3 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-white tracking-wide min-h-[1.6em]"
-            initial={{opacity:0, y:20}}
-            animate={{opacity:1, y:0}}
-            transition={{duration:0.6}}>
-              <span>
-                {roles[index].substring(0, SubIndex)}
-              </span>
-              <span className="inline-block w-[2px] ml-1 bg-white animate-pulse align-middle "
-              style={{height:"1em"}} ></span>
-            </motion.div>
+            <TypewriterText roles={roles} />
             <motion.h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#1cd8d2] via-[#00bf8f] to-[#302b63] drop-shadow-lg"
             initial={{opacity:0, y:40}}
             animate={{opacity:1, y:0}}
@@ -279,14 +211,7 @@ export default function Home() {
               <a href="\AdarshResume 2.pdf" download className="px-6 py-3 rounded-full text-lg font-medium text-black bg-white hover:bg-gray-200 shadow-lg hover:scale-105 transition-all">resume</a>
             </motion.div>
 
-            <div className="mt-10 flex gap-5 text-2xl md:text-3xl justify-center lg:justify-start">
-              {socials.map(({Icon,label,href}) => (
-                <motion.a href={href} key={label} target="_blank" aria-label={label} rel="noopener noreferrer" variants={glowVariants} initial='initial' whileHover="hover" whileTap="tap" className="text-gray-300 ">
-                  <Icon/>
-                  </motion.a>
-              ))}
-
-            </div>
+            <SocialLinks />
 
           </motion.div>
         </motion.div>
@@ -311,80 +236,34 @@ export default function Home() {
           transition={{ duration: 0.6, ease: "easeInOut" }}
           >
             <div className="w-full h-full">
-              <Canvas camera={{ position: [0, 0, 3.4], fov: 45 }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }} style={{ width: '100%', height: '100%' }}>
+              <Canvas 
+                camera={{ position: [0, 0, 3.4], fov: 45 }} 
+                dpr={[1, 2]} 
+                gl={{ antialias: true, alpha: true }}
+                style={{ width: '100%', height: '100%', background: 'transparent' }}
+              >
                 <ambientLight intensity={0.5} />
                 <directionalLight position={[0, 3, 2]} intensity={2} castShadow />
                 <CameraRig focusPhone={focusPhone} isMobile={isMobile} />
-                <IPhoneModel 
-                  scale={iPhoneScale} 
-                  focusPhone={focusPhone} 
-                  onClick={() => !focusPhone && setFocusPhone(true)} 
-                  onSettled={() => setIsIPhoneSettled(true)} 
-                  isMobile={isMobile}
-                  onTransformUpdate={setIPhoneTransform}
-                />
+                <Suspense fallback={null}>
+                  <IPhoneModel 
+                    scale={iPhoneScale} 
+                    focusPhone={focusPhone} 
+                    onClick={() => !focusPhone && setFocusPhone(true)} 
+                    onSettled={() => setIsIPhoneSettled(true)} 
+                    isMobile={isMobile}
+                    onTransformUpdate={setIPhoneTransform}
+                  />
+                </Suspense>
               </Canvas>
               
-              {(focusPhone || isMobile) && isIPhoneSettled && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2, duration: 0.6 }}
-                  className="absolute inset-0 flex items-center justify-center z-20 pointer-events-auto"
-                  style={{
-                    transform: `translate(${iPhoneTransform.position.x * 2}px, ${iPhoneTransform.position.y * 2}px)`
-                  }}
-                >
-                  <div
-                    style={{
-                      width: isMobile ? "min(85vw, 340px)" : "360px",
-                      height: isMobile ? "min(82vh, 700px)" : "740px",
-                      borderRadius: isMobile ? "36px" : "40px",
-                      overflow: "hidden",
-                      background: "linear-gradient(135deg, #1cd8d2 0%, #00bf8f 100%)",
-                      transform: `scaleX(${Math.min(iPhoneTransform.scaleX / (isMobile ? 11.5 : 9.8), 1.05)}) scaleY(${Math.min(iPhoneTransform.scaleY / (isMobile ? 11.5 : 9.8), 1.05)})`,
-                      transition: "transform 0.1s ease-out"
-                    }}
-                  >
-                    {/* Mobile Portfolio Content */}
-                    <div className="w-full h-full bg-gradient-to-b from-black via-black to-gray-900 text-white overflow-y-auto p-6 flex flex-col">
-                      <h2 className="text-2xl font-bold mb-4">Adarsh Kumar</h2>
-                      <p className="text-sm text-gray-300 mb-6">Web Developer | Software Designer | Creator</p>
-                      
-                      <div className="mb-6">
-                        <h3 className="text-lg font-semibold mb-2">Projects</h3>
-                        <div className="space-y-3">
-                          <div className="bg-gray-800 rounded-lg p-3">
-                            <p className="font-medium text-sm">Project Alpha</p>
-                            <p className="text-xs text-gray-400">React + Three.js</p>
-                          </div>
-                          <div className="bg-gray-800 rounded-lg p-3">
-                            <p className="font-medium text-sm">Project Beta</p>
-                            <p className="text-xs text-gray-400">Next.js + Tailwind</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mb-6">
-                        <h3 className="text-lg font-semibold mb-2">Skills</h3>
-                        <div className="flex flex-wrap gap-2">
-                          <span className="bg-blue-600 text-xs px-2 py-1 rounded">React</span>
-                          <span className="bg-blue-600 text-xs px-2 py-1 rounded">Three.js</span>
-                          <span className="bg-blue-600 text-xs px-2 py-1 rounded">Tailwind</span>
-                          <span className="bg-blue-600 text-xs px-2 py-1 rounded">JavaScript</span>
-                        </div>
-                      </div>
-
-                      <button 
-                        onClick={() => setFocusPhone(false)}
-                        className="mt-auto px-4 py-2 bg-white text-black rounded-full font-medium hover:bg-gray-200 w-full"
-                      >
-                        Back
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
+              <MobileContentOverlay
+                focusPhone={focusPhone}
+                isIPhoneSettled={isIPhoneSettled}
+                isMobile={isMobile}
+                iPhoneTransform={iPhoneTransform}
+                setFocusPhone={setFocusPhone}
+              />
             </div>
           </motion.div>
         </motion.div>

@@ -5,7 +5,7 @@ import * as THREE from "three";
 import useCameraMove from "./canvas/useCameraMove";
 import { CAMERA_STATES } from "./canvas/cameraStates";
 import MacBookApp from "./components/MacBook/App";
-import "./components/MacBook/App.css";
+import "./components/MacBook/index.css";
 
 const MobilePortfolioScene = lazy(() => import("./components/MobilePortfolioScene"));
 

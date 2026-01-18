@@ -342,6 +342,32 @@ const ContentScreen = memo(({ setFocusPhone, scrollLocked, toggleScroll, isMobil
                 </span>
               </div>
             )}
+
+            {/* Desktop Exit Toggle - Only show on desktop */}
+            {!isMobileDevice && (
+              <div className="mt-6 mb-2 flex items-center justify-center gap-3 px-4 py-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 max-w-[280px] mx-auto">
+                <span className="text-sm font-medium text-white/80">Exit iPhone</span>
+                <button
+                  onClick={() => setFocusPhone(false)}
+                  className="relative inline-flex h-8 w-[51px] flex-shrink-0 items-center rounded-full transition-all duration-300 ease-in-out focus:outline-none hover:scale-105 active:scale-95"
+                  style={{
+                    backgroundColor: '#ff6b6b',
+                    padding: '2px'
+                  }}
+                >
+                  <span
+                    className="inline-block h-7 w-7 rounded-full bg-white shadow-lg transition-all duration-300 ease-in-out flex items-center justify-center"
+                    style={{
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 text-gray-800">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            )}
           </div>
         ) : currentScreen === "leetcode" ? (
           <LeetCodeScreen />

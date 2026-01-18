@@ -234,7 +234,7 @@ const ApplyScreen = memo(({ onBack }) => (
 
 ApplyScreen.displayName = 'ApplyScreen';
 
-const ContentScreen = memo(({ setFocusPhone }) => {
+const ContentScreen = memo(({ setFocusPhone, scrollLocked, toggleScroll, isMobileDevice }) => {
   const [currentScreen, setCurrentScreen] = useState("home");
   const [currentTime, setCurrentTime] = useState(dayjs().format('H:mm'));
 
@@ -262,14 +262,14 @@ const ContentScreen = memo(({ setFocusPhone }) => {
 
   return (
     <div className="w-full h-full flex flex-col relative">
-      {/* Status Bar with Dynamic Island */}}
-      <div className={`relative pb-1 transition-colors duration-300 ${isIframeScreen ? 'bg-black -mx-6 px-10 -mt-6 pt-4' : 'px-4 -mt-2'}`}>
-        <div className="flex justify-between items-center text-white text-[11px]">
+      {/* Status Bar with Dynamic Island */}
+      <div className={`relative pb-1 pt-3 transition-colors duration-300 ${isIframeScreen ? 'bg-black -mx-6 px-10' : 'px-4'}`}>
+        <div className="flex justify-between items-center text-white text-[11px] relative z-10">
           {/* Left side - Time */}
           <span className="font-semibold">{currentTime}</span>
           
           {/* Center - Dynamic Island */}
-          <div className="absolute left-1/2 -translate-x-1/2 -top-3">
+          <div className="absolute left-1/2 -translate-x-1/2 -top-3.5">
             <img src="/icons/Dynamic Island.png" alt="Dynamic Island" className="h-7 w-auto object-contain" />
           </div>
           
@@ -316,6 +316,32 @@ const ContentScreen = memo(({ setFocusPhone }) => {
                 <AppIcon key={app.id} app={app} onClick={handleScreenChange} />
               ))}
             </div>
+
+            {/* iOS-style Scroll Toggle - Only show on mobile devices */}
+            {isMobileDevice && (
+              <div className="mt-6 mb-2 flex items-center justify-center gap-3 px-4 py-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 max-w-[280px] mx-auto">
+                <span className="text-sm font-medium text-white/80">Scroll Pages</span>
+                <button
+                  onClick={toggleScroll}
+                  className="relative inline-flex h-8 w-[51px] flex-shrink-0 items-center rounded-full transition-all duration-300 ease-in-out focus:outline-none"
+                  style={{
+                    backgroundColor: scrollLocked ? 'rgba(120, 120, 128, 0.32)' : '#34C759',
+                    padding: '2px'
+                  }}
+                >
+                  <span
+                    className="inline-block h-7 w-7 rounded-full bg-white shadow-lg transition-all duration-300 ease-in-out"
+                    style={{
+                      transform: scrollLocked ? 'translateX(0)' : 'translateX(19px)',
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                    }}
+                  />
+                </button>
+                <span className="text-xs font-medium flex-shrink-0" style={{ color: scrollLocked ? '#ff6b6b' : '#34C759' }}>
+                  {scrollLocked ? 'Locked' : 'Unlocked'}
+                </span>
+              </div>
+            )}
           </div>
         ) : currentScreen === "leetcode" ? (
           <LeetCodeScreen />

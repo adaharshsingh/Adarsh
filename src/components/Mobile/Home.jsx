@@ -11,7 +11,7 @@ import ContentScreen from "./components/ContentScreen.jsx";
 import { useGLTF } from "@react-three/drei";
 useGLTF.preload("/models/iphone_air.glb");
 
-const MobileContentOverlay = memo(({ focusPhone, isIPhoneSettled, isMobile, iPhoneTransform, setFocusPhone }) => {
+const MobileContentOverlay = memo(({ focusPhone, isIPhoneSettled, isMobile, iPhoneTransform, setFocusPhone, scrollLocked, toggleScroll, isMobileDevice }) => {
   if (!focusPhone || !isIPhoneSettled) return null;
 
   return (
@@ -38,7 +38,7 @@ const MobileContentOverlay = memo(({ focusPhone, isIPhoneSettled, isMobile, iPho
           transition: "transform 0.1s ease-out"
         }}
       >
-        <ContentScreen setFocusPhone={setFocusPhone} />
+        <ContentScreen setFocusPhone={setFocusPhone} scrollLocked={scrollLocked} toggleScroll={toggleScroll} isMobileDevice={isMobileDevice} />
       </div>
     </motion.div>
   );
@@ -89,7 +89,7 @@ const TypewriterText = memo(({ roles }) => {
 
 TypewriterText.displayName = 'TypewriterText';
 
-export default function Home() {
+export default function Home({ scrollLocked, toggleScroll, isMobile: isMobileDevice }) {
   const roles = useMemo(
     () => ["Web Developer", "Software Designer", "Creator"],
     []
@@ -233,6 +233,9 @@ export default function Home() {
                 isMobile={isMobile}
                 iPhoneTransform={iPhoneTransform}
                 setFocusPhone={setFocusPhone}
+                scrollLocked={scrollLocked}
+                toggleScroll={toggleScroll}
+                isMobileDevice={isMobileDevice}
               />
             </div>
           </motion.div>

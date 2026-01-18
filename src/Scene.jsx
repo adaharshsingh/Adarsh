@@ -51,20 +51,36 @@ function WorkspaceInner({ isPortfolioOpen, setIsPortfolioOpen, isMobilePortfolio
   // Expose exitPortfolio method to parent
   useImperativeHandle(ref, () => ({
     exitPortfolio: () => {
-      // Move to MACBOOK first
-      moveTo(CAMERA_STATES.MACBOOK);
-      setCurrentCameraState("MACBOOK");
-      
-      // Then after 1.2s (camera animation), move to GALLERY and close portfolio
-      setTimeout(() => {
-        moveTo(CAMERA_STATES.GALLERY);
-        setCurrentCameraState("GALLERY");
-        autoClickRef.current = false; // Reset for next mobile auto-click
-        setIsPortfolioOpen(false);
-        setIsMobilePortfolioOpen(false);
-      }, 1200);
+      // Check if coming from mobile (iPhone) or desktop (MacBook)
+      if (currentCameraState === "IPHONE" || isMobilePortfolioOpen) {
+        // Mobile: Move to IPHONE first, then to GALLERY
+        moveTo(CAMERA_STATES.IPHONE);
+        setCurrentCameraState("IPHONE");
+        
+        // Then after 1.2s (camera animation), move to GALLERY and close portfolio
+        setTimeout(() => {
+          moveTo(CAMERA_STATES.GALLERY);
+          setCurrentCameraState("GALLERY");
+          autoClickRef.current = false; // Reset for next mobile auto-click
+          setIsPortfolioOpen(false);
+          setIsMobilePortfolioOpen(false);
+        }, 1200);
+      } else {
+        // Desktop: Move to MACBOOK first
+        moveTo(CAMERA_STATES.MACBOOK);
+        setCurrentCameraState("MACBOOK");
+        
+        // Then after 1.2s (camera animation), move to GALLERY and close portfolio
+        setTimeout(() => {
+          moveTo(CAMERA_STATES.GALLERY);
+          setCurrentCameraState("GALLERY");
+          autoClickRef.current = false; // Reset for next mobile auto-click
+          setIsPortfolioOpen(false);
+          setIsMobilePortfolioOpen(false);
+        }, 1200);
+      }
     }
-  }), [moveTo, setIsPortfolioOpen, setIsMobilePortfolioOpen]);
+  }), [moveTo, setIsPortfolioOpen, setIsMobilePortfolioOpen, currentCameraState, isMobilePortfolioOpen]);
 
   // Disable mouse tracking during scroll
   useEffect(() => {
@@ -417,7 +433,7 @@ export default function Scene() {
         {isMobilePortfolioOpen && (
           <MobilePortfolioScene 
             isMobilePortfolioOpen={isMobilePortfolioOpen} 
-            onClose={() => setIsMobilePortfolioOpen(false)}
+            onClose={handleCloseMobilePortfolioWithAnimation}
           />
         )}
       </Suspense>

@@ -1,9 +1,9 @@
 import React, { useRef } from 'react'
-import { dockApps } from '#constants'
+import { dockApps } from '../constants'
 import { Tooltip } from 'react-tooltip'
 import { useGSAP } from '@gsap/react'
 import { gsap } from 'gsap'
-import useWindowStore from '#store/window'
+import useWindowStore from '../store/window'
 
 const Dock = () => {
     const {openWindow, closeWindow, windows} = useWindowStore();

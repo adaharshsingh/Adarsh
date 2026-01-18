@@ -38,7 +38,7 @@ const AppIcon = memo(({ app, onClick }) => {
           style={isImageIcon ? {} : { filter: 'brightness(0) invert(1)' }} 
         />
       </button>
-      <span className="text-[10px] text-white font-medium drop-shadow-md">{app.name}</span>
+      <span className="text-[10px] text-white font-medium drop-shadow-md truncate max-w-[60px]">{app.name}</span>
     </div>
   );
 });
@@ -269,7 +269,7 @@ const ContentScreen = memo(({ setFocusPhone, scrollLocked, toggleScroll, isMobil
           <span className="font-semibold">{currentTime}</span>
           
           {/* Center - Dynamic Island */}
-          <div className="absolute left-1/2 -translate-x-1/2 -top-3.5">
+          <div className="absolute left-1/2 -translate-x-1/2 -top-2">
             <img src="/icons/Dynamic Island.png" alt="Dynamic Island" className="h-7 w-auto object-contain" />
           </div>
           
@@ -297,12 +297,12 @@ const ContentScreen = memo(({ setFocusPhone, scrollLocked, toggleScroll, isMobil
             {/* Widget Section */}
             <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20">
               <div className="flex items-center gap-4 mb-3">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-3xl">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-3xl flex-shrink-0">
                   👨‍💻
                 </div>
-                <div>
-                  <h2 className="text-xl font-bold text-white">Adarsh Kumar</h2>
-                  <p className="text-sm text-gray-300">Full Stack Developer</p>
+                <div className="min-w-0">
+                  <h2 className="text-xl font-bold text-white truncate">Adarsh Kumar</h2>
+                  <p className="text-sm text-gray-300 truncate">Full Stack Developer</p>
                 </div>
               </div>
               <p className="text-xs text-gray-200 leading-relaxed">

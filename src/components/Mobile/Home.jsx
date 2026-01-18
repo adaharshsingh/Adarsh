@@ -14,6 +14,44 @@ useGLTF.preload("/models/iphone_air.glb");
 const MobileContentOverlay = memo(({ focusPhone, isIPhoneSettled, isMobile, iPhoneTransform, setFocusPhone, scrollLocked, toggleScroll, isMobileDevice }) => {
   if (!focusPhone || !isIPhoneSettled) return null;
 
+  // Calculate responsive dimensions that better match the iPhone model
+  const getResponsiveDimensions = () => {
+    if (isMobileDevice) {
+      // For actual mobile devices, use viewport-based sizing with better constraints
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Calculate dimensions maintaining iPhone aspect ratio (roughly 19.5:9)
+      const maxWidth = Math.min(viewportWidth * 0.88, 380);
+      const maxHeight = Math.min(viewportHeight * 0.85, 780);
+      
+      // Maintain aspect ratio
+      const aspectRatio = 19.5 / 9;
+      let width = maxWidth;
+      let height = width * aspectRatio;
+      
+      if (height > maxHeight) {
+        height = maxHeight;
+        width = height / aspectRatio;
+      }
+      
+      return {
+        width: `${width}px`,
+        height: `${height}px`,
+        borderRadius: '38px'
+      };
+    } else {
+      // Desktop dimensions
+      return {
+        width: '360px',
+        height: '740px',
+        borderRadius: '40px'
+      };
+    }
+  };
+
+  const dimensions = getResponsiveDimensions();
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -26,15 +64,15 @@ const MobileContentOverlay = memo(({ focusPhone, isIPhoneSettled, isMobile, iPho
     >
       <div
         style={{
-          width: isMobile ? "min(85vw, 340px)" : "360px",
-          height: isMobile ? "min(82vh, 700px)" : "740px",
-          borderRadius: isMobile ? "36px" : "40px",
+          width: dimensions.width,
+          height: dimensions.height,
+          borderRadius: dimensions.borderRadius,
           overflow: "hidden",
           backgroundImage: "url('/Group 38.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          transform: `scaleX(${Math.min(iPhoneTransform.scaleX / (isMobile ? 11.5 : 9.8), 1.05)}) scaleY(${Math.min(iPhoneTransform.scaleY / (isMobile ? 11.5 : 9.8), 1.05)})`,
+          transform: `scaleX(${Math.min(iPhoneTransform.scaleX / (isMobileDevice ? 11.8 : 9.8), 1.05)}) scaleY(${Math.min(iPhoneTransform.scaleY / (isMobileDevice ? 11.8 : 9.8), 1.05)})`,
           transition: "transform 0.1s ease-out"
         }}
       >

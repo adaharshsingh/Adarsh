@@ -38,7 +38,12 @@ const stats=[
                 <h2 className='text-4xl sm:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent
                 bg-gradient-to-r from-[#1cd8d2] via-[#00bf8f] to-[#1cd8d2]'>Adarsh Kumar Singh</h2>
                 <p className='mt-2 text-lg sm:text-xl text-white/90 font-semibold'>Full Stack Developer</p>
-                <p className='mt-4 text-gray-300 leading-relaxed text-base sm:text-lg max-w-2xl md:max-w-3xl'>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Inventore quasi iusto qui dolorem consectetur eos, voluptatibus est rem recusandae repellat consequuntur accusantium nesciunt esse ullam perferendis amet cum. Dicta, magnam!</p>
+                <p className='mt-4 text-gray-300 leading-relaxed text-base sm:text-lg max-w-2xl md:max-w-3xl'>I build real-world apps, not just demos.
+<br />Design-first, performance-focused, product-driven.
+<br />
+Fresher by title, builder by habit.
+<br />
+If it ships and scales, I’m interested.</p>
                 <div className='mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 max-w-3xl'>
                   {stats.map((item,i)=>(
                     <motion.div key={i} className='rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-center'
@@ -64,8 +69,8 @@ const stats=[
         transition={{duration:0.6}}
         viewport={{once:true,amount:0.4}}>
           <h3 className='text-2xl sm:text-3xl font-bold text-white mb-3'>About Me</h3>
-          <p className='text-gray-300 leading-relaxed text-base sm:text-lg'>Lorem ipsum dolor sit amet consectetur adipisicing elit. Id optio culpa architecto vitae, consequuntur voluptates, voluptas pariatur aspernatur asperiores maiores ullam, similique quibusdam labore deleniti ab nemo atque odit. Illo.</p>
-          <p className='mt-4 text-gray-400 text-base sm:text-lg'>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Harum suscipit fugiat impedit eius rerum veritatis doloribus fuga voluptate error! Iste veritatis officiis ut eius molestiae minus ducimus aspernatur. Aut, ea?</p>
+          <p className='text-gray-300 leading-relaxed text-base sm:text-lg'>I’m a fresher full-stack developer with hands-on experience building end-to-end applications using modern web technologies.</p>
+          <p className='mt-4 text-gray-400 text-base sm:text-lg'> I’ve worked on projects ranging from ride-hailing and job-tracking platforms to food discovery and AI-assisted tools. I care deeply about performance, UI/UX, and writing code that scales beyond demos. My approach is simple: build fast, break less, learn continuously, and improve with every project.</p>
         </motion.div>
       </div>
     </section>

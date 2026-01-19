@@ -392,7 +392,7 @@ export default function Scene() {
             onClick={handleClosePortfolioWithAnimation}
             style={{
               position: "fixed",
-              top: "20px",
+              top: "41px",
               right: "20px",
               padding: "12px 20px",
               background: "#fdb813",

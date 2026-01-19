@@ -44,7 +44,7 @@ const dockApps = [
   },
   {
     id: "safari",
-    name: "Articles", // was "Safari"
+    name: "Projects", // was "Safari"
     icon: "safari.png",
     canOpen: true,
   },
@@ -79,34 +79,38 @@ const blogPosts = [
     id: 1,
     date: "Sep 2, 2025",
     title:
-      "TypeScript Explained: What It Is, Why It Matters, and How to Master It",
-    image: "/images/blog1.png",
-    link: "https://jsmastery.com/blog/typescript-explained-what-it-is-why-it-matters-and-how-to-master-it",
+      "Applyd- A Job tracker Application Built with MERN Stack and Tailwind CSS",
+    image: "/images/applyd-1.png",
+    link: "https://applyd.online/",
   },
   {
     id: 2,
     date: "Aug 28, 2025",
-    title: "The Ultimate Guide to Mastering Three.js for 3D Development",
-    image: "/images/blog2.png",
-    link: "https://jsmastery.com/blog/the-ultimate-guide-to-mastering-three-js-for-3d-development",
+    title: "URBN- A Uber like Clone Built with Socket.io for Real-time Tracking and Ride Creations",
+    image: "/images/Uber.png",
+    link: "https://urbn-five.vercel.app/",
   },
   {
     id: 3,
     date: "Aug 15, 2025",
-    title: "The Ultimate Guide to Mastering GSAP Animations",
-    image: "/images/blog3.png",
-    link: "https://jsmastery.com/blog/the-ultimate-guide-to-mastering-gsap-animations",
+    title: "CRAVE- A Reels Style-Food Delivery Application Built to order Food you like in reels instantly",
+    image: "/images/Crave-1.png",
+    link: "https://hangry-alpha.vercel.app/",
   },
 ];
 
 const techStack = [
   {
-    category: "Frontend",
-    items: ["React.js", "Next.js", "TypeScript"],
+    category: "Languages",
+    items: ["JavaScript", "Java", "Python"],
   },
   {
-    category: "Mobile",
-    items: ["React Native", "Expo"],
+    category: "Frontend",
+    items: ["React.js"],
+  },
+  {
+    category: "AIML",
+    items: ["Generative AI", "Basic ML Concepts"],
   },
   {
     category: "Styling",
@@ -114,11 +118,11 @@ const techStack = [
   },
   {
     category: "Backend",
-    items: ["Node.js", "Express", "NestJS", "Hono"],
+    items: ["Node.js", "Express"],
   },
   {
     category: "Database",
-    items: ["MongoDB", "PostgreSQL"],
+    items: ["MongoDB", "MySQL"],
   },
   {
     category: "Dev Tools",
@@ -132,28 +136,28 @@ const socials = [
     text: "Github",
     icon: "/icons/github.svg",
     bg: "#f4656b",
-    link: "https://github.com/JavaScript-Mastery-Pro",
+    link: "https://github.com/adaharshsingh",
   },
   {
     id: 2,
-    text: "Platform",
+    text: "Personal Website",
     icon: "/icons/atom.svg",
     bg: "#4bcb63",
-    link: "https://jsmastery.com/",
+    link: "https://www.adarsh-singh.xyz/",
   },
   {
     id: 3,
-    text: "Twitter/X",
-    icon: "/icons/twitter.svg",
+    text: "Gmail",
+    icon: "/icons/gmail.png",
     bg: "#ff866b",
-    link: "https://x.com/jsmasterypro",
+    link: "Emailto:Mr.aadarshKumarSingh@gmail.com",
   },
   {
     id: 4,
     text: "LinkedIn",
     icon: "/icons/linkedin.svg",
     bg: "#05b6f6",
-    link: "https://www.linkedin.com/company/javascriptmastery/posts/?feedView=all",
+    link: "https://www.linkedin.com/in/adarsh-kumar-singh-226228239/",
   },
 ];
 
@@ -188,19 +192,19 @@ const photosLinks = [
 const gallery = [
   {
     id: 1,
-    img: "/images/gal1.png",
+    img: "/images/adarsh.jpeg",
   },
   {
     id: 2,
-    img: "/images/gal2.png",
+    img: "/images/adarsh-1.jpeg",
   },
   {
     id: 3,
-    img: "/images/gal3.png",
+    img: "/images/adarsh-2.jpeg",
   },
   {
     id: 4,
-    img: "/images/gal4.png",
+    img: "/images/adarsh-3.jpeg",
   },
 ];
 
@@ -225,7 +229,7 @@ const WORK_LOCATION = {
     // ▶ Project 1
     {
       id: 5,
-      name: "Nike Ecommerce Website Application",
+      name: "URBN- Uber Clone",
       icon: "/images/folder.png",
       kind: "folder",
       position: "top-10 left-5", // icon position inside Finder
@@ -233,35 +237,35 @@ const WORK_LOCATION = {
       children: [
         {
           id: 1,
-          name: "Nike Project.txt",
+          name: "URBN Project.txt",
           icon: "/images/txt.png",
           kind: "file",
           fileType: "txt",
           position: "top-5 left-10",
           description: [
-            "The Nike eCommerce website is a sleek and modern platform designed for shopping the latest Nike collections.",
-            "Instead of a simple online store, it delivers an immersive experience with bold visuals, interactive product displays, and smooth navigation.",
-            "Think of it like walking into a flagship Nike store—but right from your phone or laptop.",
-            "It's built with Next.js and Tailwind, ensuring fast performance, responsive design, and a clean, premium look.",
+            "Built a full-stack ride-hailing platform with separate user and captain flows, including registration, authentication, and role-based access control.",
+            "Implemented real-time ride matching using location data to connect users with nearby captains, even handling cases where captains toggle active/inactive states.",
+            "Integrated maps and live tracking for pickup, drop, route visualization, and dynamic distance/time estimation.",
+            "Designed a scalable backend architecture with microservices-style separation for users, rides, and captains, ensuring smooth concurrency and future feature expansion (payments, ratings, surge pricing)."
           ],
         },
         {
           id: 2,
-          name: "nike.com",
-          icon: "/images/safari.png",
+          name: "Urbn.com",
+          icon: "/images/Uber.png",
           kind: "file",
           fileType: "url",
-          href: "https://youtu.be/fZdTYswuZjU?si=Awjl-pIst9e09_UU",
+          href: "https://urbn-five.vercel.app/",
           position: "top-10 right-20",
         },
         {
           id: 4,
-          name: "nike.png",
+          name: " Urbn.png",
           icon: "/images/image.png",
           kind: "file",
           fileType: "img",
           position: "top-52 right-80",
-          imageUrl: "/images/project-1.png",
+          imageUrl: "/images/Uber.png",
         },
         {
           id: 5,
@@ -278,7 +282,7 @@ const WORK_LOCATION = {
     // ▶ Project 2
     {
       id: 6,
-      name: "AI Resume Analyzer",
+      name: "Crave- Food Discovery App",
       icon: "/images/folder.png",
       kind: "folder",
       position: "top-52 right-80",
@@ -286,35 +290,35 @@ const WORK_LOCATION = {
       children: [
         {
           id: 1,
-          name: "AI Resume Analyzer Project.txt",
+          name: "Crave- Food Discovery App.txt",
           icon: "/images/txt.png",
           kind: "file",
           fileType: "txt",
           position: "top-5 right-10",
           description: [
-            "AI Resume Analyzer is a smart tool that helps you perfect your resume with instant feedback.",
-            "Instead of guessing what recruiters want, you get AI-powered insights on keywords, formatting, and overall impact.",
-            "Think of it like having a career coach—pointing out strengths, fixing weaknesses, and boosting your chances of landing interviews.",
-            "It's built with Next.js and Tailwind, so it runs fast, looks professional, and works seamlessly on any device.",
+            "Developed a food-discovery web application that helps users find meals based on mood, cravings, time, and preferences instead of generic restaurant listings.",
+            "Implemented intelligent filtering and recommendation logic to suggest food options dynamically, reducing decision fatigue (“what should I eat?” problem).",
+            "Built a clean, responsive frontend with a smooth user flow focused on quick choices, minimal clicks, and mobile-first usability.",
+            "Designed the backend to be extensible, allowing future upgrades like user history, personalized recommendations, diet-based filtering, and restaurant integrations.",
           ],
         },
         {
           id: 2,
-          name: "ai-resume-analyzer.com",
+          name: "Crave.com",
           icon: "/images/safari.png",
           kind: "file",
           fileType: "url",
-          href: "https://youtu.be/iYOz165wGkQ?si=R1hs8Legl200m0Cl",
+          href: "https://hangry-alpha.vercel.app/",
           position: "top-20 left-20",
         },
         {
           id: 4,
-          name: "ai-resume-analyzer.png",
+          name: "Crave.png",
           icon: "/images/image.png",
           kind: "file",
           fileType: "img",
           position: "top-52 left-80",
-          imageUrl: "/images/project-2.png",
+          imageUrl: "/images/Crave-2.png",
         },
         {
           id: 5,
@@ -331,7 +335,7 @@ const WORK_LOCATION = {
     // ▶ Project 3
     {
       id: 7,
-      name: "Food Delivery App",
+      name: "Applyd- Job Application Tracker",
       icon: "/images/folder.png",
       kind: "folder",
       position: "top-10 left-80",
@@ -339,35 +343,35 @@ const WORK_LOCATION = {
       children: [
         {
           id: 1,
-          name: "Food Delivery App Project.txt",
+          name: "Applyd.txt",
           icon: "/images/txt.png",
           kind: "file",
           fileType: "txt",
           position: "top-5 left-10",
           description: [
-            "Our Food Delivery App is a fast and convenient way to order meals from your favorite restaurants.",
-            "Instead of making calls or waiting in line, you can browse menus, customize orders, and track deliveries in real time.",
-            "Think of it like having your favorite restaurants in your pocket—ready to deliver anytime, anywhere.",
-            "It’s built with React Native, so it works smoothly on both iOS and Android with a clean, modern design.",
+            "Built a job application tracking platform that centralizes applications, statuses, deadlines, and follow-ups, eliminating manual spreadsheets and guesswork.",
+            "Automated application insights by parsing emails and user inputs to update application states (applied, interview, rejected, offer), reducing user effort.",
+            "Designed a focused UX for job seekers, prioritizing clarity, quick updates, and progress visibility during high-volume job hunts.",
+            "Engineered the system for scale and extensibility, enabling future features like Gmail sync, reminders, analytics on response rates, and interview tracking.",
           ],
         },
         {
           id: 2,
-          name: "food-delivery-app.com",
+          name: "Applyd.online",
           icon: "/images/safari.png",
           kind: "file",
           fileType: "url",
-          href: "https://youtu.be/LKrX390fJMw?si=cExkuVhf2DTV9G2-",
+          href: "https://applyd.online/",
           position: "top-10 right-20",
         },
         {
           id: 4,
-          name: "food-delivery-app.png",
+          name: "Job-Tracker.png",
           icon: "/images/image.png",
           kind: "file",
           fileType: "img",
           position: "top-52 right-80",
-          imageUrl: "/images/project-3.png",
+          imageUrl: "/images/applyd-1.png",
         },
         {
           id: 5,
@@ -397,7 +401,7 @@ const ABOUT_LOCATION = {
       kind: "file",
       fileType: "img",
       position: "top-10 left-5",
-      imageUrl: "/images/adrian.jpg",
+      imageUrl: "/images/adarsh.jpeg",
     },
     {
       id: 2,
@@ -406,16 +410,16 @@ const ABOUT_LOCATION = {
       kind: "file",
       fileType: "img",
       position: "top-28 right-72",
-      imageUrl: "/images/adrian-2.jpg",
+      imageUrl: "/images/adarsh-2.jpeg",
     },
     {
       id: 3,
-      name: "conference-me.png",
+      name: "Vibing-Me.png",
       icon: "/images/image.png",
       kind: "file",
       fileType: "img",
       position: "top-52 left-80",
-      imageUrl: "/images/adrian-3.jpeg",
+      imageUrl: "/images/adarsh-3.jpeg",
     },
     {
       id: 4,
@@ -425,13 +429,17 @@ const ABOUT_LOCATION = {
       fileType: "txt",
       position: "top-60 left-5",
       subtitle: "Meet the Developer Behind the Code",
-      image: "/images/adrian.jpg",
+      image: "/images/adarsh-1.jpeg ",
       description: [
-        "Hey! I’m Adrian 👋, a web developer who enjoys building sleek, interactive websites that actually work well.",
-        "I specialize in JavaScript, React, and Next.js—and I love making things feel smooth, fast, and just a little bit delightful.",
-        "I’m big on clean UI, good UX, and writing code that doesn’t need a search party to debug.",
-        "Outside of dev work, you'll find me tweaking layouts at 2AM, sipping overpriced coffee, or impulse-buying gadgets I absolutely convinced myself I needed 😅",
-      ],
+  "Adarsh Kumar Singh",
+  "Full Stack Developer",
+  "Built 25+ projects across web, backend, and UI-heavy applications",
+  "Strong focus on performance optimization, clean architecture, and UI/UX",
+  "Experience Level: Fresher (hands-on, project-driven)",
+  "I design and build end-to-end web applications with a strong emphasis on scalability, responsiveness, and real-world usability rather than demo-only features.",
+  "My work spans MERN stack applications, real-time systems, and product-focused builds like job trackers, ride-hailing platforms, and food discovery apps.",
+  "I prefer shipping functional products, iterating fast, and solving practical problems over writing theoretical or over-engineered code."
+]
     },
   ],
 };

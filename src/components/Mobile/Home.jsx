@@ -204,19 +204,19 @@ export default function Home({ scrollLocked, toggleScroll, isMobile: isMobileDev
             transition={{duration:1}}>
               Hello, I`m 
               <br />
-              <span className="text-white font-bold text-5xl sm:text-6xl md:text-7xl lg:text-8xl lg:whitespace-nowrap">khgkjgjhgjh</span>
+              <span className="text-white font-bold text-5xl sm:text-6xl md:text-7xl lg:text-8xl lg:whitespace-nowrap">Adarsh</span>
             </motion.h1>
 
             <motion.p className="mt-6 text-base sm:text-lg md:text-xl text-gray-300 max-w-2xl mx-auto lg:mx-0"
             initial={{opacity:0, y:20}}
             animate={{opacity:1, y:0}}
-            transition={{duration:0.8,delay:0.4}}>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Sed obcaecati reprehenderit fugit aspernatur excepturi, modi expedita earum non voluptatem in a odio ducimus repellendus blanditiis nulla commodi voluptates nobis et!</motion.p>
+            transition={{duration:0.8,delay:0.4}}> I’m a full-stack developer who focuses on building real, usable products with clean UI and solid performance. I learn by shipping projects, solving practical problems, and improving systems through iteration rather than theory alone.</motion.p>
             <motion.div className="mt-10 flex flex-wrap items-center justify-center lg:justify-start gap-6"
             initial={{opacity:0}}
             animate={{opacity:1}}
             transition={{duration:0.8,delay:0.8}}>
               <a href="#projects" className="px-6 py-3 rounded-full font-medium text-lg text-white bg-gradient-to-r from-[#1cd8d2] via-[#00bf8f] to-[#302b63] shadow-lg hover:scale-105 transition-all">view my work</a>
-              <a href="\AdarshResume 2.pdf" download className="px-6 py-3 rounded-full text-lg font-medium text-black bg-white hover:bg-gray-200 shadow-lg hover:scale-105 transition-all">resume</a>
+              <a href="/files/resume.pdf" download className="px-6 py-3 rounded-full text-lg font-medium text-black bg-white hover:bg-gray-200 shadow-lg hover:scale-105 transition-all">resume</a>
             </motion.div>
 
             <SocialLinks />

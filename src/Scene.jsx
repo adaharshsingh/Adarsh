@@ -7,6 +7,10 @@ import { CAMERA_STATES } from "./canvas/cameraStates";
 import MacBookApp from "./components/MacBook/App";
 import "./components/MacBook/index.css";
 import HelpButton from "./components/ui/HelpButton";
+import MagneticCursor from "./components/MagneticCursor";
+
+// Preload critical 3D models
+useGLTF.preload("/models/Untitled.glb");
 
 const MobilePortfolioScene = lazy(() => import("./components/MobilePortfolioScene"));
 
@@ -552,6 +556,22 @@ function WorkspaceInner({ isPortfolioOpen, setIsPortfolioOpen, isMobilePortfolio
       >
         <boxGeometry args={[1.7, 0, 0.73]} />
         <meshBasicMaterial transparent opacity={0} />
+        {/* HTML overlay for magnetic cursor detection - Adjust position, scale, rotation as needed */}
+        <Html 
+          position={[0.1, -0.2, 0]} 
+          center 
+          transform 
+          scale={[0.37, 0.43, 1]}
+          rotation={[1.55, 0, 0]}
+        >
+          <div className="clickable" style={{ 
+            width: '170px', 
+            height: '73px',
+            pointerEvents: 'auto',
+            background: 'red',
+            opacity: 0
+          }} />
+        </Html>
       </mesh>
 
       {/* MacBook Screen (pivoted groups to avoid translation when rotating) */}
@@ -615,6 +635,9 @@ export default function Scene() {
 
   return (
     <>
+      {/* Magnetic Cursor - Only active when not in portfolio */}
+      <MagneticCursor isActive={!isPortfolioOpen && !isMobilePortfolioOpen} />
+      
       <Canvas 
         camera={{ position: [49, 19, 40], fov: 45, near: 0.1, far: 5000 }} 
         shadows

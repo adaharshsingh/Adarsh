@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url("https://fonts.googleapis.com/css2?family=Georama:ital,wght@0,100..900;1,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap");
-
 @layer utilities {
   .flex-center {
     @apply flex items-center justify-center;
@@ -27,7 +25,6 @@
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='white' stroke='black' stroke-width='1' d='M5.5 3L3 21l7.5-5 3.5 7 3-1.5-3.5-7 7.5-.5z'/%3E%3C/svg%3E") 4 4, auto;
 }
 
 @layer base {
@@ -68,12 +65,12 @@
   #macbook-portfolio button, 
   #macbook-portfolio a, 
   #macbook-portfolio [role="button"] {
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='white' stroke='black' stroke-width='1.5' d='M12 3l3 3h-2v5h5v-2l3 3-3 3v-2h-5v5h2l-3 3-3-3h2v-5H6v2l-3-3 3-3v2h5V6H9z'/%3E%3C/svg%3E") 12 12, pointer;
+    cursor: pointer;
   }
 
   #macbook-portfolio input, 
   #macbook-portfolio textarea {
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='24' viewBox='0 0 20 24'%3E%3Crect x='9' y='0' width='2' height='24' fill='black'/%3E%3C/svg%3E") 10 12, text;
+    cursor: text;
   }
 
   #macbook-portfolio #welcome {
